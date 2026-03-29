@@ -2,6 +2,8 @@ import Link from 'next/link'
 import { prisma } from '@/lib/db'
 import PackageCard from '@/components/packages/PackageCard'
 
+export const dynamic = 'force-dynamic'
+
 async function getFeaturedPackages() {
   return await prisma.package.findMany({
     where: { isActive: true },

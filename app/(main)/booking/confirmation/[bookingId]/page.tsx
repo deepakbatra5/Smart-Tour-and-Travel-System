@@ -2,6 +2,8 @@ import { prisma } from '@/lib/db'
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+
 interface Props {
   params: { bookingId: string } | Promise<{ bookingId: string }>
 }
