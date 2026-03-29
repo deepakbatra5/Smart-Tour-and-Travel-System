@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 800" role="img" aria-labelledby="title desc">
+  <title id="title">Travel Sphere placeholder</title>
+  <desc id="desc">A scenic placeholder illustration for tour packages.</desc>
+  <defs>
+    <linearGradient id="sky" x1="0" x2="0" y1="0" y2="1">
+      <stop offset="0%" stop-color="#fde68a"/>
+      <stop offset="55%" stop-color="#fb923c"/>
+      <stop offset="100%" stop-color="#ea580c"/>
+    </linearGradient>
+  </defs>
+  <rect width="1200" height="800" fill="url(#sky)"/>
+  <circle cx="920" cy="170" r="86" fill="#fff7ed" opacity="0.9"/>
+  <path d="M0 560 180 420 330 520 520 330 700 520 860 390 1040 540 1200 410V800H0Z" fill="#7c2d12" opacity="0.35"/>
+  <path d="M0 610 170 500 330 590 520 420 700 610 860 470 1040 620 1200 520V800H0Z" fill="#9a3412" opacity="0.55"/>
+  <path d="M0 670 150 590 330 660 520 520 700 680 860 560 1040 700 1200 620V800H0Z" fill="#431407" opacity="0.75"/>
+  <text x="72" y="108" fill="#fff7ed" font-family="Georgia, serif" font-size="52" font-weight="700">Travel Sphere</text>
+  <text x="72" y="156" fill="#ffedd5" font-family="Arial, sans-serif" font-size="24">Curated journeys, coming soon</text>
+</svg>
