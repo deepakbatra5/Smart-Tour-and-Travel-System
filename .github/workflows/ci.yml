@@ -8,7 +8,7 @@ on:
   pull_request:
 
 jobs:
-  build:
+  verify-vercel-build:
     runs-on: ubuntu-latest
     services:
       postgres:
@@ -52,14 +52,8 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Generate Prisma client
-        run: npx prisma generate
-
-      - name: Push Prisma schema
-        run: npx prisma db push
-
       - name: Lint
         run: npm run lint
 
-      - name: Build
-        run: npm run build
+      - name: Verify Vercel build command
+        run: npm run vercel-build

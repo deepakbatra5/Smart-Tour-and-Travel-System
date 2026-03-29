@@ -34,23 +34,29 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## GitHub Actions
 
-This repo includes:
-
-- `.github/workflows/ci.yml` for CI validation on pushes and pull requests
-- `.github/workflows/deploy.yml` for building a deployable standalone artifact on pushes to `main` or `master`
-
-The workflows:
+This repo includes `.github/workflows/ci.yml`, which validates the same build flow Vercel will use. The workflow:
 
 - installs dependencies with `npm ci`
-- generates the Prisma client
 - starts a temporary PostgreSQL service
-- runs `prisma db push`
 - runs `npm run lint`
-- runs `npm run build`
-- uploads a `travel-standalone` artifact containing the Next.js standalone server output
+- runs `npm run vercel-build`
 
-Because the workflow uses CI-safe placeholder environment values, your real secrets stay in local env files or GitHub repository secrets for your deployment platform.
+Because the workflow uses CI-safe placeholder environment values, your real secrets stay in local env files or in Vercel project settings.
 
-## Production Deployment
+## Vercel Deployment
 
-This app cannot be deployed to GitHub Pages because it uses API routes, NextAuth, Prisma, and Razorpay. GitHub Actions now builds a standalone server artifact instead. For actual hosting, deploy that artifact or connect the repository to a server-capable host such as Vercel, Railway, or Render and add the same environment variables from `.env.example` in that platform.
+This app should be deployed on Vercel, not GitHub Pages.
+
+1. Push the repository to GitHub.
+2. Import the repository into Vercel.
+3. Add all environment variables from `.env.example`.
+4. Set `NEXTAUTH_URL` to your production Vercel domain, for example `https://your-project.vercel.app`.
+5. Trigger the first deployment.
+
+This repo is already configured for that flow:
+
+- `vercel.json` tells Vercel to use `npm run vercel-build`
+- `npm run vercel-build` runs Prisma generate, `prisma migrate deploy`, and `next build`
+- `prisma/migrations` now contains the initial migration Vercel can apply to a fresh PostgreSQL database
+
+For Preview deployments, use a separate preview database if you do not want preview builds to touch production data.
