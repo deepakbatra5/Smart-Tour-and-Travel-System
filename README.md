@@ -56,7 +56,7 @@ This app should be deployed on Vercel, not GitHub Pages.
 This repo is already configured for that flow:
 
 - `vercel.json` tells Vercel to use `npm run vercel-build`
-- `npm run vercel-build` runs Prisma generate, `prisma migrate deploy`, and `next build`
+- `npm run vercel-build` runs Prisma generate, `prisma migrate deploy`, `npm run seed`, and `next build`
 - `prisma/migrations` now contains the initial migration Vercel can apply to a fresh PostgreSQL database
 
 For Preview deployments, use a separate preview database if you do not want preview builds to touch production data.

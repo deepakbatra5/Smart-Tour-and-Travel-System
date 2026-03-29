@@ -12,7 +12,7 @@
     "postinstall": "prisma generate",
     "dev": "next dev",
     "build": "next build",
-    "vercel-build": "npm run prisma:generate && npm run db:migrate:deploy && next build",
+    "vercel-build": "npm run prisma:generate && npm run db:migrate:deploy && npm run seed && next build",
     "start": "next start",
     "lint": "eslint"
   },
