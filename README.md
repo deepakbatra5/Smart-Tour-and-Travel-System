@@ -34,7 +34,12 @@ Open [http://localhost:3000](http://localhost:3000).
 
 ## GitHub Actions
 
-This repo includes `.github/workflows/ci.yml`, which is ready to run on pushes and pull requests. The workflow:
+This repo includes:
+
+- `.github/workflows/ci.yml` for CI validation on pushes and pull requests
+- `.github/workflows/deploy.yml` for building a deployable standalone artifact on pushes to `main` or `master`
+
+The workflows:
 
 - installs dependencies with `npm ci`
 - generates the Prisma client
@@ -42,9 +47,10 @@ This repo includes `.github/workflows/ci.yml`, which is ready to run on pushes a
 - runs `prisma db push`
 - runs `npm run lint`
 - runs `npm run build`
+- uploads a `travel-standalone` artifact containing the Next.js standalone server output
 
 Because the workflow uses CI-safe placeholder environment values, your real secrets stay in local env files or GitHub repository secrets for your deployment platform.
 
 ## Production Deployment
 
-GitHub Actions now validates that the app can build cleanly. For an actual production deploy, connect the repository to your target host such as Vercel, Railway, or Render and add the same environment variables from `.env.example` in that platform.
+This app cannot be deployed to GitHub Pages because it uses API routes, NextAuth, Prisma, and Razorpay. GitHub Actions now builds a standalone server artifact instead. For actual hosting, deploy that artifact or connect the repository to a server-capable host such as Vercel, Railway, or Render and add the same environment variables from `.env.example` in that platform.
