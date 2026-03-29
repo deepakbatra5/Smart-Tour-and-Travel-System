@@ -136,7 +136,7 @@ async function main() {
       price: 32999,
       duration: 9,
       category: 'ADVENTURE',
-      images: ['/travel-placeholder.svg'],
+      images: ['/ladakh-adventure-tour.jpg'],
       itinerary: [
         { day: 1, title: 'Arrive Leh', description: 'Rest for acclimatization at 3500m altitude. Evening market walk.' },
         { day: 2, title: 'Acclimatization Day', description: 'Light visit to Shanti Stupa and Leh Palace.' },
