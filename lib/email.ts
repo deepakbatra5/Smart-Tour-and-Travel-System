@@ -1,5 +1,21 @@
 import nodemailer from 'nodemailer'
 
+interface BookingEmailPayload {
+  id: string
+  travelDate: string | Date
+  travellers: number
+  totalAmount: number
+  user: {
+    name: string
+    email: string
+  }
+  package: {
+    title: string
+    destination: string
+    duration: number
+  }
+}
+
 const transporter = nodemailer.createTransport({
   host: process.env.EMAIL_HOST,
   port: Number(process.env.EMAIL_PORT),
@@ -10,7 +26,7 @@ const transporter = nodemailer.createTransport({
   },
 })
 
-export async function sendBookingConfirmationEmail(booking: any) {
+export async function sendBookingConfirmationEmail(booking: BookingEmailPayload) {
   const { user, package: pkg, travelDate, travellers, totalAmount, id } = booking
 
   const formattedDate = new Date(travelDate).toLocaleDateString('en-IN', {
@@ -100,12 +116,12 @@ export async function sendBookingConfirmationEmail(booking: any) {
     await transporter.sendMail({
       from: `"Travel Sphere" <${process.env.EMAIL_USER}>`,
       to: user.email,
-      subject: `Booking Confirmed — ${pkg.title}`,
+      subject: `Booking Confirmed - ${pkg.title}`,
       html,
     })
     console.log(`Confirmation email sent to ${user.email}`)
   } catch (error) {
-    // Do not throw — email failure should not break the booking flow
+    // Do not throw - email failure should not break the booking flow
     console.error('Email sending failed:', error)
   }
 }

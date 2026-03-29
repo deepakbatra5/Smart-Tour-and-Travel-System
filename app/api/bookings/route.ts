@@ -36,12 +36,12 @@ export async function POST(req: Request) {
     })
 
     return NextResponse.json(booking, { status: 201 })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to create booking' }, { status: 500 })
   }
 }
 
-export async function GET(req: Request) {
+export async function GET() {
   try {
     const session = await getServerSession(authOptions)
 
@@ -64,7 +64,7 @@ export async function GET(req: Request) {
     })
 
     return NextResponse.json(bookings)
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch bookings' }, { status: 500 })
   }
 }

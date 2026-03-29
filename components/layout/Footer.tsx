@@ -9,7 +9,7 @@ export default function Footer() {
         <div>
           <h2 className="text-white text-xl font-bold mb-3">Travel Sphere</h2>
           <p className="text-sm leading-relaxed">
-            India's trusted travel company. Curated tours for families,
+            India&apos;s trusted travel company. Curated tours for families,
             couples, groups and solo travelers since 2013.
           </p>
         </div>

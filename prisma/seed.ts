@@ -1,6 +1,6 @@
 import { config as loadEnv } from 'dotenv'
 import { PrismaPg } from '@prisma/adapter-pg'
-import { PrismaClient } from '../generated/prisma/client.ts'
+import { PrismaClient, type Prisma } from '../generated/prisma/client.ts'
 
 loadEnv({ path: '.env' })
 loadEnv({ path: '.env.local', override: true })
@@ -14,10 +14,12 @@ if (!connectionString) {
 const adapter = new PrismaPg({ connectionString })
 const prisma = new PrismaClient({ adapter })
 
+type SeedPackage = Prisma.PackageCreateInput
+
 async function main() {
   console.log('Seeding database...')
 
-  const packages = [
+  const packages: SeedPackage[] = [
     {
       title: 'Golden Triangle Tour',
       slug: 'golden-triangle-tour',
@@ -160,14 +162,14 @@ async function main() {
         description: pkg.description,
         price: pkg.price,
         duration: pkg.duration,
-        category: pkg.category as any,
+        category: pkg.category,
         images: pkg.images,
-        itinerary: pkg.itinerary as any,
+        itinerary: pkg.itinerary,
         inclusions: pkg.inclusions,
         exclusions: pkg.exclusions,
         isActive: true,
       },
-      create: pkg as any,
+      create: pkg,
     })
     console.log(`Created: ${pkg.title}`)
   }

@@ -1,19 +1,22 @@
 import { prisma } from '@/lib/db'
+import { Prisma, Category } from '@/generated/prisma/client'
 import PackageCard from '@/components/packages/PackageCard'
 import PackageFilter from '@/components/packages/PackageFilter'
 import { Suspense } from 'react'
 
-interface Props {
-  searchParams: {
-    search?: string
-    category?: string
-    duration?: string
-    budget?: string
-  }
+interface SearchParams {
+  search?: string
+  category?: string
+  duration?: string
+  budget?: string
 }
 
-async function getPackages(filters: Props['searchParams']) {
-  const where: any = { isActive: true }
+interface Props {
+  searchParams: SearchParams | Promise<SearchParams>
+}
+
+async function getPackages(filters: SearchParams) {
+  const where: Prisma.PackageWhereInput = { isActive: true }
 
   if (filters.search) {
     where.OR = [
@@ -22,8 +25,8 @@ async function getPackages(filters: Props['searchParams']) {
     ]
   }
 
-  if (filters.category && filters.category !== 'ALL') {
-    where.category = filters.category
+  if (filters.category && filters.category !== 'ALL' && filters.category in Category) {
+    where.category = filters.category as Category
   }
 
   if (filters.duration && filters.duration !== 'ALL') {
@@ -47,7 +50,8 @@ async function getPackages(filters: Props['searchParams']) {
 }
 
 export default async function PackagesPage({ searchParams }: Props) {
-  const packages = await getPackages(searchParams)
+  const filters = await Promise.resolve(searchParams)
+  const packages = await getPackages(filters)
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-10">

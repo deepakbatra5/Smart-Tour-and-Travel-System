@@ -19,6 +19,38 @@ interface Traveller {
   gender: string
 }
 
+interface RazorpaySuccessResponse {
+  razorpay_order_id: string
+  razorpay_payment_id: string
+  razorpay_signature: string
+}
+
+interface RazorpayOptions {
+  key?: string
+  amount: number
+  currency: string
+  name: string
+  description?: string
+  order_id: string
+  theme: {
+    color: string
+  }
+  handler: (response: RazorpaySuccessResponse) => Promise<void>
+  modal: {
+    ondismiss: () => void
+  }
+}
+
+interface RazorpayInstance {
+  open: () => void
+}
+
+declare global {
+  interface Window {
+    Razorpay?: new (options: RazorpayOptions) => RazorpayInstance
+  }
+}
+
 export default function BookingPage() {
   const router = useRouter()
   const params = useParams<{ packageId: string }>()
@@ -49,9 +81,9 @@ export default function BookingPage() {
 
   // Update travellers array when count changes
   useEffect(() => {
-    setTravellers(
+    setTravellers((currentTravellers) =>
       Array.from({ length: travellerCount }, (_, i) =>
-        travellers[i] || { name: '', age: '', gender: 'MALE' }
+        currentTravellers[i] || { name: '', age: '', gender: 'MALE' }
       )
     )
   }, [travellerCount])
@@ -125,7 +157,7 @@ export default function BookingPage() {
         description: pkg?.title,
         order_id: orderData.id,
         theme: { color: '#f97316' },
-        handler: async function (response: any) {
+        handler: async (response: RazorpaySuccessResponse) => {
           // Step 4: Verify payment
           const verifyRes = await fetch('/api/payment/verify', {
             method: 'POST',
@@ -154,14 +186,17 @@ export default function BookingPage() {
       }
 
       // Load Razorpay script and open
-      if (!(window as any).Razorpay) {
+      const RazorpayConstructor = window.Razorpay
+
+      if (!RazorpayConstructor) {
         throw new Error('Payment service is still loading. Please try again in a moment.')
       }
-      const rzp = new (window as any).Razorpay(options)
+      const rzp = new RazorpayConstructor(options)
       rzp.open()
 
-    } catch (err: any) {
-      alert(err.message || 'Something went wrong. Please try again.')
+    } catch (err: unknown) {
+      const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.'
+      alert(message)
       setLoading(false)
     }
   }

@@ -1,5 +1,19 @@
 import { NextResponse } from 'next/server'
 import { prisma } from '@/lib/db'
+import { Prisma, Category } from '@/generated/prisma/client'
+
+interface CreatePackageBody {
+  title: string
+  destination: string
+  description: string
+  price: string | number
+  duration: string | number
+  category: Category
+  images?: string[]
+  itinerary?: Prisma.InputJsonValue
+  inclusions?: string[]
+  exclusions?: string[]
+}
 
 export async function GET(req: Request) {
   try {
@@ -7,10 +21,10 @@ export async function GET(req: Request) {
     const category = searchParams.get('category')
     const search = searchParams.get('search')
 
-    const where: any = { isActive: true }
+    const where: Prisma.PackageWhereInput = { isActive: true }
 
-    if (category && category !== 'ALL') {
-      where.category = category
+    if (category && category !== 'ALL' && category in Category) {
+      where.category = category as Category
     }
 
     if (search) {
@@ -26,14 +40,14 @@ export async function GET(req: Request) {
     })
 
     return NextResponse.json(packages)
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to fetch packages' }, { status: 500 })
   }
 }
 
 export async function POST(req: Request) {
   try {
-    const body = await req.json()
+    const body = await req.json() as CreatePackageBody
     const { title, destination, description, price, duration, category, images, itinerary, inclusions, exclusions } = body
 
     const slugify = (await import('slugify')).default
@@ -42,8 +56,8 @@ export async function POST(req: Request) {
     const pkg = await prisma.package.create({
       data: {
         title, slug, destination, description,
-        price: parseFloat(price),
-        duration: parseInt(duration),
+        price: Number(price),
+        duration: Number(duration),
         category,
         images: images || [],
         itinerary: itinerary || [],
@@ -53,7 +67,7 @@ export async function POST(req: Request) {
     })
 
     return NextResponse.json(pkg, { status: 201 })
-  } catch (error) {
+  } catch {
     return NextResponse.json({ error: 'Failed to create package' }, { status: 500 })
   }
 }
