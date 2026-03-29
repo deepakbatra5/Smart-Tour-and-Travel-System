@@ -59,4 +59,11 @@ This repo is already configured for that flow:
 - `npm run vercel-build` runs Prisma generate, `prisma migrate deploy`, `npm run seed`, and `next build`
 - `prisma/migrations` now contains the initial migration Vercel can apply to a fresh PostgreSQL database
 
+If you are using Vercel Postgres or Prisma Postgres, set:
+
+- `DATABASE_URL` to the pooled Prisma/client URL, such as `POSTGRES_PRISMA_URL`
+- `DIRECT_URL` to the non-pooled direct connection URL, such as `POSTGRES_URL_NON_POOLING`
+
+Prisma uses `DIRECT_URL` for migrations so `prisma migrate deploy` does not fail on pooled connections.
+
 For Preview deployments, use a separate preview database if you do not want preview builds to touch production data.
