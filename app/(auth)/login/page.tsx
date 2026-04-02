@@ -12,19 +12,19 @@ export default function LoginPage() {
   const getSafeCallbackPath = () => {
     const rawCallback = new URLSearchParams(window.location.search).get('callbackUrl')
 
-    if (!rawCallback) return '/dashboard'
+    if (!rawCallback) return '/'
 
     try {
       const callbackUrl = new URL(rawCallback, window.location.origin)
 
       if (callbackUrl.origin !== window.location.origin) {
-        return '/dashboard'
+        return '/'
       }
 
       const pathWithQuery = `${callbackUrl.pathname}${callbackUrl.search}${callbackUrl.hash}`
-      return pathWithQuery || '/dashboard'
+      return pathWithQuery || '/'
     } catch {
-      return rawCallback.startsWith('/') ? rawCallback : '/dashboard'
+      return rawCallback.startsWith('/') ? rawCallback : '/'
     }
   }
 
