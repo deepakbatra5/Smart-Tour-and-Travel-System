@@ -24,3 +24,17 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+/* Keep filled form values clearly visible across booking/auth pages. */
+input,
+select,
+textarea {
+  color: #111827;
+  font-weight: 500;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #4b5563;
+  opacity: 1;
+}

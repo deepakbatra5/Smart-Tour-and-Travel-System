@@ -25,7 +25,7 @@ async function main() {
       slug: 'golden-triangle-tour',
       destination: 'Delhi - Agra - Jaipur',
       description: 'Experience the best of North India with this classic Golden Triangle tour. Visit the iconic Taj Mahal, majestic forts and vibrant bazaars.',
-      price: 15999,
+      price: 10,
       duration: 6,
       category: 'FAMILY',
       images: ['https://images.unsplash.com/photo-1564507592333-c60657eea523?w=800'],

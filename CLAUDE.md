@@ -772,7 +772,7 @@ export default function Footer() {
         <div>
           <h3 className="text-white font-semibold mb-3">Contact Us</h3>
           <ul className="space-y-2 text-sm">
-            <li>Phone: +91 9798919579</li>
+            <li>Phone: +91 8603606089</li>
             <li>Email: deepankumar81c401a1e8@gmail.com</li>
             <li>Address: Amritsar, Punjab, India</li>
             <li>Hours: Mon-Sat 9AM to 7PM</li>
@@ -784,7 +784,7 @@ export default function Footer() {
           <h3 className="text-white font-semibold mb-3">Chat With Us</h3>
           <p className="text-sm mb-4">Get instant help from our travel experts</p>
           <a
-            href="https://wa.me/919798919579"
+            href="https://wa.me/918603606089"
             target="_blank"
             className="inline-block bg-green-500 text-white px-4 py-2 rounded-full text-sm hover:bg-green-600 transition"
           >
@@ -964,7 +964,7 @@ export default async function HomePage() {
         <h2 className="text-2xl font-bold mb-2">Need Help Planning Your Trip?</h2>
         <p className="mb-6 text-green-100">Chat with our travel experts on WhatsApp</p>
         <a
-          href="https://wa.me/919798919579"
+          href="https://wa.me/918603606089"
           target="_blank"
           className="inline-block bg-white text-green-600 font-bold px-8 py-3 rounded-full hover:bg-green-50 transition"
         >
@@ -1450,7 +1450,7 @@ export default async function PackageDetailPage({ params }: Props) {
             </Link>
 
             <a
-              href={`https://wa.me/919798919579?text=Hi, I am interested in the ${pkg.title} package`}
+              href={`https://wa.me/918603606089?text=Hi, I am interested in the ${pkg.title} package`}
               target="_blank"
               className="block w-full bg-green-500 text-white text-center py-3 rounded-full font-semibold hover:bg-green-600 transition"
             >
@@ -2103,7 +2103,7 @@ export default function RegisterPage() {
               type="tel"
               value={form.phone}
               onChange={(e) => setForm({ ...form, phone: e.target.value })}
-              placeholder="+91 9798919579"
+              placeholder="+91 8603606089"
               className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
             />
           </div>
@@ -2938,8 +2938,8 @@ export default async function ConfirmationPage({ params }: Props) {
       {/* Help */}
       <div className="text-center mt-8 text-sm text-gray-400">
         Need help? WhatsApp us at{' '}
-        <a href="https://wa.me/919798919579" className="text-green-500 font-medium">
-          +91 9798919579
+        <a href="https://wa.me/918603606089" className="text-green-500 font-medium">
+          +91 8603606089
         </a>
       </div>
 
@@ -3041,11 +3041,11 @@ export async function sendBookingConfirmationEmail(booking: any) {
 
           <p style="font-size: 14px; color: #374151;">Our team will contact you 48 hours before your trip with further details. If you have any questions, please reach out to us.</p>
 
-          <a href="https://wa.me/919798919579" class="btn">Chat on WhatsApp</a>
+          <a href="https://wa.me/918603606089" class="btn">Chat on WhatsApp</a>
         </div>
         <div class="footer">
           <p>KingHills Travels | Amritsar, Punjab, India</p>
-          <p>Phone: +91 9798919579 | Email: deepankumar81c401a1e8@gmail.com</p>
+          <p>Phone: +91 8603606089 | Email: deepankumar81c401a1e8@gmail.com</p>
           <p style="margin-top: 8px;">This is an automated email. Please do not reply directly to this email.</p>
         </div>
       </div>

@@ -48,18 +48,18 @@ export default function PackageCard({ package: pkg }: Props) {
         {/* Content */}
         <div className="p-4">
           <h3 className="font-bold text-gray-800 text-base mb-1 line-clamp-1">{pkg.title}</h3>
-          <p className="text-gray-500 text-sm mb-3">{pkg.destination}</p>
+          <p className="text-gray-900 font-semibold text-sm mb-3">{pkg.destination}</p>
 
           <div className="flex items-center justify-between">
             <div>
-              <span className="text-xs text-gray-400">Starting from</span>
+              <span className="text-xs text-gray-900 font-semibold">Starting from</span>
               <div className="text-orange-500 font-bold text-lg">
                 Rs {pkg.price.toLocaleString('en-IN')}
               </div>
             </div>
             <div className="text-right">
-              <span className="text-xs text-gray-400">Duration</span>
-              <div className="text-gray-700 font-semibold text-sm">{pkg.duration} Days</div>
+              <span className="text-xs text-gray-900 font-semibold">Duration</span>
+              <div className="text-gray-900 font-semibold text-sm">{pkg.duration} Days</div>
             </div>
           </div>
 

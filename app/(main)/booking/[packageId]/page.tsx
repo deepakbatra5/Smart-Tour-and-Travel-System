@@ -2,7 +2,6 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
-import Script from 'next/script'
 
 interface Package {
   id: string
@@ -59,7 +58,6 @@ export default function BookingPage() {
   const [pkg, setPkg] = useState<Package | null>(null)
   const [step, setStep] = useState(1)
   const [loading, setLoading] = useState(false)
-  const [razorpayReady, setRazorpayReady] = useState(false)
 
   // Step 1 data
   const [travelDate, setTravelDate] = useState('')
@@ -89,6 +87,64 @@ export default function BookingPage() {
   }, [travellerCount])
 
   const totalAmount = pkg ? pkg.price * travellerCount : 0
+
+  const loadRazorpayScript = async () => {
+    if (typeof window === 'undefined') {
+      throw new Error('Payment service is not available right now.')
+    }
+
+    if (window.Razorpay) return
+
+    await new Promise<void>((resolve, reject) => {
+      const existingScript = document.querySelector<HTMLScriptElement>('script[data-razorpay-checkout="true"]')
+
+      if (existingScript) {
+        const onLoad = () => {
+          cleanup()
+          if (window.Razorpay) resolve()
+          else reject(new Error('Payment service loaded incorrectly. Please refresh and try again.'))
+        }
+
+        const onError = () => {
+          cleanup()
+          reject(new Error('Unable to load payment service. Please check your internet connection.'))
+        }
+
+        const cleanup = () => {
+          existingScript.removeEventListener('load', onLoad)
+          existingScript.removeEventListener('error', onError)
+        }
+
+        existingScript.addEventListener('load', onLoad)
+        existingScript.addEventListener('error', onError)
+
+        // Fallback when script event happened before listeners were attached.
+        setTimeout(() => {
+          cleanup()
+          if (window.Razorpay) resolve()
+          else reject(new Error('Payment service is taking too long to load. Disable ad blocker and try again.'))
+        }, 4000)
+
+        return
+      }
+
+      const script = document.createElement('script')
+      script.src = 'https://checkout.razorpay.com/v1/checkout.js'
+      script.async = true
+      script.dataset.razorpayCheckout = 'true'
+
+      script.onload = () => {
+        if (window.Razorpay) resolve()
+        else reject(new Error('Payment service loaded incorrectly. Please refresh and try again.'))
+      }
+
+      script.onerror = () => {
+        reject(new Error('Unable to load payment service. Disable ad blocker and try again.'))
+      }
+
+      document.head.appendChild(script)
+    })
+  }
 
   // Update single traveller field
   const updateTraveller = (index: number, field: keyof Traveller, value: string) => {
@@ -120,6 +176,8 @@ export default function BookingPage() {
     setLoading(true)
 
     try {
+      await loadRazorpayScript()
+
       // Step 1: Create booking in DB
       const bookingRes = await fetch('/api/bookings', {
         method: 'POST',
@@ -176,6 +234,7 @@ export default function BookingPage() {
             router.push(`/booking/confirmation/${bookingData.id}`)
           } else {
             alert('Payment verification failed. Please contact support.')
+            setLoading(false)
           }
         },
         modal: {
@@ -204,22 +263,16 @@ export default function BookingPage() {
   if (!pkg) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <p className="text-gray-400">Loading package details...</p>
+        <p className="text-gray-900 font-semibold">Loading package details...</p>
       </div>
     )
   }
 
   return (
     <div className="max-w-3xl mx-auto px-4 py-10">
-      <Script
-        src="https://checkout.razorpay.com/v1/checkout.js"
-        strategy="afterInteractive"
-        onLoad={() => setRazorpayReady(true)}
-      />
-
       {/* Page Title */}
       <h1 className="text-2xl font-bold text-gray-800 mb-2">Book Your Trip</h1>
-      <p className="text-gray-500 text-sm mb-8">{pkg.title} — {pkg.destination}</p>
+      <p className="text-gray-900 font-semibold text-sm mb-8">{pkg.title} — {pkg.destination}</p>
 
       {/* Step Indicator */}
       <div className="flex items-center mb-10">
@@ -227,10 +280,10 @@ export default function BookingPage() {
           <div key={i} className="flex items-center flex-1">
             <div className="flex flex-col items-center">
               <div className={`w-8 h-8 rounded-full flex items-center justify-center text-sm font-bold
-                ${step > i + 1 ? 'bg-green-500 text-white' : step === i + 1 ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-500'}`}>
+                ${step > i + 1 ? 'bg-green-500 text-white' : step === i + 1 ? 'bg-orange-500 text-white' : 'bg-gray-200 text-gray-800'}`}>
                 {step > i + 1 ? 'Done' : i + 1}
               </div>
-              <span className={`text-xs mt-1 text-center ${step === i + 1 ? 'text-orange-500 font-medium' : 'text-gray-400'}`}>
+              <span className={`text-xs mt-1 text-center ${step === i + 1 ? 'text-orange-500 font-semibold' : 'text-gray-800 font-semibold'}`}>
                 {label}
               </span>
             </div>
@@ -256,7 +309,7 @@ export default function BookingPage() {
                 value={travelDate}
                 onChange={(e) => setTravelDate(e.target.value)}
                 min={new Date(Date.now() + 86400000).toISOString().split('T')[0]}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 font-semibold focus:outline-none focus:ring-2 focus:ring-orange-400"
               />
             </div>
 
@@ -267,7 +320,7 @@ export default function BookingPage() {
               <select
                 value={travellerCount}
                 onChange={(e) => setTravellerCount(parseInt(e.target.value))}
-                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm text-gray-900 font-semibold focus:outline-none focus:ring-2 focus:ring-orange-400"
               >
                 {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((n) => (
                   <option key={n} value={n}>{n} {n === 1 ? 'Person' : 'People'}</option>
@@ -278,12 +331,12 @@ export default function BookingPage() {
             {/* Price Summary */}
             <div className="bg-orange-50 rounded-xl p-4">
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-600">Price per person</span>
-                <span className="font-medium">Rs {pkg.price.toLocaleString('en-IN')}</span>
+                <span className="text-gray-900 font-semibold">Price per person</span>
+                <span className="text-gray-900 font-semibold">Rs {pkg.price.toLocaleString('en-IN')}</span>
               </div>
               <div className="flex justify-between text-sm mb-2">
-                <span className="text-gray-600">Number of travellers</span>
-                <span className="font-medium">x {travellerCount}</span>
+                <span className="text-gray-900 font-semibold">Number of travellers</span>
+                <span className="text-gray-900 font-semibold">x {travellerCount}</span>
               </div>
               <div className="border-t border-orange-200 pt-2 flex justify-between font-bold text-orange-600">
                 <span>Total Amount</span>
@@ -311,22 +364,22 @@ export default function BookingPage() {
           <div className="space-y-6">
             {travellers.map((t, i) => (
               <div key={i} className="border border-gray-100 rounded-xl p-4">
-                <h3 className="font-semibold text-gray-700 mb-4 text-sm">
+                <h3 className="font-semibold text-gray-900 mb-4 text-sm">
                   Traveller {i + 1}
                 </h3>
                 <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                   <div className="md:col-span-1">
-                    <label className="block text-xs text-gray-500 mb-1">Full Name</label>
+                    <label className="block text-xs text-gray-700 font-semibold mb-1">Full Name</label>
                     <input
                       type="text"
                       value={t.name}
                       onChange={(e) => updateTraveller(i, 'name', e.target.value)}
                       placeholder="Full name"
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 font-semibold placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-400"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">Age</label>
+                    <label className="block text-xs text-gray-700 font-semibold mb-1">Age</label>
                     <input
                       type="number"
                       value={t.age}
@@ -334,15 +387,15 @@ export default function BookingPage() {
                       placeholder="Age"
                       min="1"
                       max="99"
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 font-semibold placeholder:text-gray-500 focus:outline-none focus:ring-2 focus:ring-orange-400"
                     />
                   </div>
                   <div>
-                    <label className="block text-xs text-gray-500 mb-1">Gender</label>
+                    <label className="block text-xs text-gray-700 font-semibold mb-1">Gender</label>
                     <select
                       value={t.gender}
                       onChange={(e) => updateTraveller(i, 'gender', e.target.value)}
-                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+                      className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm text-gray-900 font-semibold focus:outline-none focus:ring-2 focus:ring-orange-400"
                     >
                       <option value="MALE">Male</option>
                       <option value="FEMALE">Female</option>
@@ -357,7 +410,7 @@ export default function BookingPage() {
           <div className="flex gap-3 mt-6">
             <button
               onClick={() => setStep(1)}
-              className="flex-1 border border-gray-300 text-gray-600 py-3 rounded-xl font-medium hover:bg-gray-50 transition"
+              className="flex-1 border border-gray-300 text-gray-900 py-3 rounded-xl font-semibold hover:bg-gray-50 transition"
             >
               Back
             </button>
@@ -383,28 +436,28 @@ export default function BookingPage() {
             <h3 className="font-semibold text-gray-800 mb-3">Package Details</h3>
             <div className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">Package</span>
-                <span className="font-medium">{pkg.title}</span>
+                <span className="text-gray-900 font-semibold">Package</span>
+                <span className="text-gray-900 font-semibold">{pkg.title}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Destination</span>
-                <span className="font-medium">{pkg.destination}</span>
+                <span className="text-gray-900 font-semibold">Destination</span>
+                <span className="text-gray-900 font-semibold">{pkg.destination}</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Duration</span>
-                <span className="font-medium">{pkg.duration} Days</span>
+                <span className="text-gray-900 font-semibold">Duration</span>
+                <span className="text-gray-900 font-semibold">{pkg.duration} Days</span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Travel Date</span>
-                <span className="font-medium">
+                <span className="text-gray-900 font-semibold">Travel Date</span>
+                <span className="text-gray-900 font-semibold">
                   {new Date(travelDate).toLocaleDateString('en-IN', {
                     day: 'numeric', month: 'long', year: 'numeric'
                   })}
                 </span>
               </div>
               <div className="flex justify-between">
-                <span className="text-gray-500">Travellers</span>
-                <span className="font-medium">{travellerCount} Person(s)</span>
+                <span className="text-gray-900 font-semibold">Travellers</span>
+                <span className="text-gray-900 font-semibold">{travellerCount} Person(s)</span>
               </div>
             </div>
           </div>
@@ -415,8 +468,8 @@ export default function BookingPage() {
             <div className="space-y-2">
               {travellers.map((t, i) => (
                 <div key={i} className="flex items-center justify-between bg-gray-50 rounded-lg px-4 py-2 text-sm">
-                  <span className="font-medium text-gray-700">{t.name}</span>
-                  <span className="text-gray-500">{t.age} years — {t.gender}</span>
+                  <span className="font-semibold text-gray-900">{t.name}</span>
+                  <span className="text-gray-900 font-semibold">{t.age} years — {t.gender}</span>
                 </div>
               ))}
             </div>
@@ -425,8 +478,8 @@ export default function BookingPage() {
           {/* Amount Summary */}
           <div className="border-t pt-4 mb-6">
             <div className="flex justify-between text-sm mb-2">
-              <span className="text-gray-500">Rs {pkg.price.toLocaleString('en-IN')} x {travellerCount} travellers</span>
-              <span>Rs {totalAmount.toLocaleString('en-IN')}</span>
+              <span className="text-gray-900 font-semibold">Rs {pkg.price.toLocaleString('en-IN')} x {travellerCount} travellers</span>
+              <span className="text-gray-900 font-semibold">Rs {totalAmount.toLocaleString('en-IN')}</span>
             </div>
             <div className="flex justify-between font-bold text-lg text-orange-600">
               <span>Total Payable</span>
@@ -437,20 +490,20 @@ export default function BookingPage() {
           <div className="flex gap-3">
             <button
               onClick={() => setStep(2)}
-              className="flex-1 border border-gray-300 text-gray-600 py-3 rounded-xl font-medium hover:bg-gray-50 transition"
+              className="flex-1 border border-gray-300 text-gray-900 py-3 rounded-xl font-semibold hover:bg-gray-50 transition"
             >
               Back
             </button>
             <button
               onClick={handlePayment}
-              disabled={loading || !razorpayReady}
+              disabled={loading}
               className="flex-1 bg-orange-500 text-white py-3 rounded-xl font-semibold hover:bg-orange-600 transition disabled:opacity-50"
             >
-              {loading ? 'Processing...' : !razorpayReady ? 'Loading payment...' : `Pay Rs ${totalAmount.toLocaleString('en-IN')}`}
+              {loading ? 'Processing...' : `Pay Rs ${totalAmount.toLocaleString('en-IN')}`}
             </button>
           </div>
 
-          <p className="text-center text-xs text-gray-400 mt-4">
+          <p className="text-center text-xs text-gray-900 font-semibold mt-4">
             Secured by Razorpay. Your payment information is safe.
           </p>
         </div>

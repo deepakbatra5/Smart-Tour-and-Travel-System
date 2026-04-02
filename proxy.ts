@@ -21,6 +21,7 @@ export default withAuth(
         // These paths require login
         if (path.startsWith('/booking')) return !!token
         if (path.startsWith('/admin')) return !!token
+        if (path.startsWith('/dashboard')) return !!token
 
         return true
       }
@@ -29,5 +30,5 @@ export default withAuth(
 )
 
 export const config = {
-  matcher: ['/booking/:path*', '/admin/:path*']
+  matcher: ['/booking/:path*', '/admin/:path*', '/dashboard/:path*']
 }

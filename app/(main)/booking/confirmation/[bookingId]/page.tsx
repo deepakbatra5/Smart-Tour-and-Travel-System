@@ -131,8 +131,8 @@ export default async function ConfirmationPage({ params }: Props) {
       {/* Help */}
       <div className="text-center mt-8 text-sm text-gray-400">
         Need help? WhatsApp us at{' '}
-        <a href="https://wa.me/919798919579" className="text-green-500 font-medium">
-          +91 9798919579
+        <a href="https://wa.me/918603606089" className="text-green-500 font-medium">
+          +91 8603606089
         </a>
       </div>
 

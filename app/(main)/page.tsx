@@ -133,7 +133,7 @@ export default async function HomePage() {
         <h2 className="text-2xl font-bold mb-2">Need Help Planning Your Trip?</h2>
         <p className="mb-6 text-green-100">Chat with our travel experts on WhatsApp</p>
         <a
-          href="https://wa.me/919798919579"
+          href="https://wa.me/918603606089"
           target="_blank"
           className="inline-block bg-white text-green-600 font-bold px-8 py-3 rounded-full hover:bg-green-50 transition"
         >

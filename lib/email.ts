@@ -100,11 +100,11 @@ export async function sendBookingConfirmationEmail(booking: BookingEmailPayload)
 
           <p style="font-size: 14px; color: #374151;">Our team will contact you 48 hours before your trip with further details. If you have any questions, please reach out to us.</p>
 
-          <a href="https://wa.me/919798919579" class="btn">Chat on WhatsApp</a>
+          <a href="https://wa.me/918603606089" class="btn">Chat on WhatsApp</a>
         </div>
         <div class="footer">
           <p>Travel Sphere | Amritsar, Punjab, India</p>
-          <p>Phone: +91 9798919579 | Email: deepankumar81c401a1e8@gmail.com</p>
+          <p>Phone: +91 8603606089 | Email: deepankumar81c401a1e8@gmail.com</p>
           <p style="margin-top: 8px;">This is an automated email. Please do not reply directly to this email.</p>
         </div>
       </div>
