@@ -2,14 +2,31 @@
 
 import { useState } from 'react'
 import { signIn } from 'next-auth/react'
-import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 
 export default function LoginPage() {
-  const router = useRouter()
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
+
+  const getSafeCallbackPath = () => {
+    const rawCallback = new URLSearchParams(window.location.search).get('callbackUrl')
+
+    if (!rawCallback) return '/dashboard'
+
+    try {
+      const callbackUrl = new URL(rawCallback, window.location.origin)
+
+      if (callbackUrl.origin !== window.location.origin) {
+        return '/dashboard'
+      }
+
+      const pathWithQuery = `${callbackUrl.pathname}${callbackUrl.search}${callbackUrl.hash}`
+      return pathWithQuery || '/dashboard'
+    } catch {
+      return rawCallback.startsWith('/') ? rawCallback : '/dashboard'
+    }
+  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -27,9 +44,8 @@ export default function LoginPage() {
     if (result?.error) {
       setError('Invalid email or password. Please try again.')
     } else {
-      const callbackUrl = new URLSearchParams(window.location.search).get('callbackUrl')
-      router.push(callbackUrl || '/dashboard')
-      router.refresh()
+      const safeCallbackPath = getSafeCallbackPath()
+      window.location.assign(safeCallbackPath)
     }
   }
 
