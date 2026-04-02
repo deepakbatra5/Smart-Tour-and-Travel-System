@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { useParams, useRouter } from 'next/navigation'
+import { useSession } from 'next-auth/react'
 
 interface Package {
   id: string
@@ -54,6 +55,7 @@ export default function BookingPage() {
   const router = useRouter()
   const params = useParams<{ packageId: string }>()
   const packageId = params?.packageId
+  const { status } = useSession()
 
   const [pkg, setPkg] = useState<Package | null>(null)
   const [step, setStep] = useState(1)
@@ -70,12 +72,19 @@ export default function BookingPage() {
 
   // Fetch package details
   useEffect(() => {
+    if (status === 'unauthenticated') {
+      const callback = packageId ? `/booking/${packageId}` : '/packages'
+      router.replace(`/login?callbackUrl=${encodeURIComponent(callback)}`)
+      return
+    }
+
+    if (status !== 'authenticated') return
     if (!packageId) return
 
     fetch(`/api/packages/${packageId}`)
       .then((r) => r.json())
       .then(setPkg)
-  }, [packageId])
+  }, [packageId, router, status])
 
   // Update travellers array when count changes
   useEffect(() => {
