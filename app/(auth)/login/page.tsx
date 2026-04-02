@@ -49,7 +49,8 @@ export default function LoginPage() {
     } else if (!result?.ok) {
       setError('Unable to login right now. Please try again.')
     } else {
-      window.location.assign(result.url || safeCallbackPath)
+      // Use sanitized callback path directly to avoid callback URL loop issues in production.
+      window.location.assign(safeCallbackPath)
     }
   }
 
