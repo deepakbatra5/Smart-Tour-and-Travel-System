@@ -43,6 +43,7 @@ interface RazorpayOptions {
 
 interface RazorpayInstance {
   open: () => void
+  on: (event: string, handler: (response: unknown) => void) => void
 }
 
 declare global {
@@ -187,6 +188,12 @@ export default function BookingPage() {
     try {
       await loadRazorpayScript()
 
+      const razorpayKey = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID
+
+      if (!razorpayKey) {
+        throw new Error('Payment key is missing. Please contact support.')
+      }
+
       // Step 1: Create booking in DB
       const bookingRes = await fetch('/api/bookings', {
         method: 'POST',
@@ -217,7 +224,7 @@ export default function BookingPage() {
 
       // Step 3: Open Razorpay popup
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
+        key: razorpayKey,
         amount: orderData.amount,
         currency: 'INR',
         name: 'Travel Sphere',
@@ -225,24 +232,29 @@ export default function BookingPage() {
         order_id: orderData.id,
         theme: { color: '#f97316' },
         handler: async (response: RazorpaySuccessResponse) => {
-          // Step 4: Verify payment
-          const verifyRes = await fetch('/api/payment/verify', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              bookingId: bookingData.id,
-              razorpay_order_id: response.razorpay_order_id,
-              razorpay_payment_id: response.razorpay_payment_id,
-              razorpay_signature: response.razorpay_signature,
-            }),
-          })
+          try {
+            // Step 4: Verify payment
+            const verifyRes = await fetch('/api/payment/verify', {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                bookingId: bookingData.id,
+                razorpay_order_id: response.razorpay_order_id,
+                razorpay_payment_id: response.razorpay_payment_id,
+                razorpay_signature: response.razorpay_signature,
+              }),
+            })
 
-          const verifyData = await verifyRes.json()
+            const verifyData = await verifyRes.json()
 
-          if (verifyData.success) {
-            router.push(`/booking/confirmation/${bookingData.id}`)
-          } else {
-            alert('Payment verification failed. Please contact support.')
+            if (verifyData.success) {
+              router.push(`/booking/confirmation/${bookingData.id}`)
+            } else {
+              alert('Payment verification failed. Please contact support.')
+              setLoading(false)
+            }
+          } catch {
+            alert('Unable to verify payment right now. Please contact support.')
             setLoading(false)
           }
         },
@@ -260,7 +272,16 @@ export default function BookingPage() {
         throw new Error('Payment service is still loading. Please try again in a moment.')
       }
       const rzp = new RazorpayConstructor(options)
+
+      rzp.on('payment.failed', () => {
+        setLoading(false)
+        alert('Payment failed. Please try again.')
+      })
+
       rzp.open()
+
+      // Popup has opened and user can interact there; stop locking the page button state.
+      setLoading(false)
 
     } catch (err: unknown) {
       const message = err instanceof Error ? err.message : 'Something went wrong. Please try again.'
