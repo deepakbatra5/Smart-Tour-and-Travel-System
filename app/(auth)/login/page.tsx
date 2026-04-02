@@ -33,9 +33,12 @@ export default function LoginPage() {
     setLoading(true)
     setError('')
 
+    const safeCallbackPath = getSafeCallbackPath()
+
     const result = await signIn('credentials', {
       email: form.email,
       password: form.password,
+      callbackUrl: safeCallbackPath,
       redirect: false,
     })
 
@@ -43,9 +46,10 @@ export default function LoginPage() {
 
     if (result?.error) {
       setError('Invalid email or password. Please try again.')
+    } else if (!result?.ok) {
+      setError('Unable to login right now. Please try again.')
     } else {
-      const safeCallbackPath = getSafeCallbackPath()
-      window.location.assign(safeCallbackPath)
+      window.location.assign(result.url || safeCallbackPath)
     }
   }
 

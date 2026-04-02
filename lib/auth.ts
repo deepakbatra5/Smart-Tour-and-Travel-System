@@ -50,6 +50,18 @@ export const authOptions: NextAuthOptions = {
         session.user.id = token.id
       }
       return session
+    },
+    async redirect({ url, baseUrl }) {
+      if (url.startsWith('/')) return `${baseUrl}${url}`
+
+      try {
+        const targetUrl = new URL(url)
+        if (targetUrl.origin === baseUrl) return url
+      } catch {
+        // fall through to baseUrl
+      }
+
+      return baseUrl
     }
   },
   pages: {
