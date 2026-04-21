@@ -3,6 +3,31 @@ import CredentialsProvider from 'next-auth/providers/credentials'
 import { prisma } from './db'
 import bcrypt from 'bcryptjs'
 
+async function findOrCreateSeedAdmin(email: string, password: string) {
+  const seedAdminEmail = process.env.SEED_ADMIN_EMAIL
+  const seedAdminPassword = process.env.SEED_ADMIN_PASSWORD
+
+  if (!seedAdminEmail || !seedAdminPassword) return null
+  if (email.toLowerCase() !== seedAdminEmail.toLowerCase()) return null
+  if (password !== seedAdminPassword) return null
+
+  const hashedPassword = await bcrypt.hash(seedAdminPassword, 10)
+
+  return prisma.user.upsert({
+    where: { email: seedAdminEmail },
+    update: {
+      password: hashedPassword,
+      role: 'ADMIN',
+    },
+    create: {
+      name: 'Admin',
+      email: seedAdminEmail,
+      password: hashedPassword,
+      role: 'ADMIN',
+    },
+  })
+}
+
 export const authOptions: NextAuthOptions = {
   providers: [
     CredentialsProvider({
@@ -14,14 +39,21 @@ export const authOptions: NextAuthOptions = {
       async authorize(credentials) {
         if (!credentials?.email || !credentials?.password) return null
 
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email }
+        const email = credentials.email.trim()
+        const password = credentials.password
+
+        let user = await prisma.user.findUnique({
+          where: { email }
         })
+
+        if (!user) {
+          user = await findOrCreateSeedAdmin(email, password)
+        }
 
         if (!user) return null
 
         const passwordMatch = await bcrypt.compare(
-          credentials.password, 
+          password,
           user.password
         )
 
