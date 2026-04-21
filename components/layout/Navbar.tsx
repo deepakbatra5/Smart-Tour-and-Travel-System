@@ -3,48 +3,78 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { signOut, useSession } from 'next-auth/react'
+import { usePathname } from 'next/navigation'
+import { Bars3Icon, XMarkIcon } from '@heroicons/react/24/outline'
+
+const navLinks = [
+  { label: 'Home', href: '/' },
+  { label: 'All Packages', href: '/packages' },
+  { label: 'Honeymoon', href: '/packages?category=HONEYMOON' },
+  { label: 'Family', href: '/packages?category=FAMILY' },
+  { label: 'Pilgrimage', href: '/packages?category=PILGRIMAGE' },
+  { label: 'Group Tours', href: '/packages?category=GROUP' },
+]
 
 export default function Navbar() {
   const { data: session } = useSession()
+  const pathname = usePathname()
   const [menuOpen, setMenuOpen] = useState(false)
+  const userName = session?.user?.name?.split(' ')[0] || 'Traveler'
+  const isPackagesPage = pathname?.startsWith('/packages')
 
   return (
-    <nav className="bg-white shadow-md sticky top-0 z-50">
-      <div className="max-w-7xl mx-auto px-4 py-3 flex items-center justify-between">
-
-        {/* Logo */}
-        <Link href="/" className="text-2xl font-bold text-orange-500">
-          Travel Sphere
+    <nav className="sticky top-0 z-50 border-b border-white/70 bg-white/85 backdrop-blur">
+      <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3">
+        <Link href="/" className="shrink-0">
+          <span className="inline-flex items-center gap-2 rounded-full border border-orange-200 bg-orange-50 px-4 py-2 text-sm font-bold uppercase tracking-[0.2em] text-orange-700 md:text-base">
+            Travel Sphere
+          </span>
         </Link>
 
-        {/* Desktop Nav Links */}
-        <div className="hidden md:flex items-center gap-6 text-sm font-medium text-gray-700">
-          <Link href="/packages" className="hover:text-orange-500 transition">All Packages</Link>
-          <Link href="/packages?category=HONEYMOON" className="hover:text-orange-500 transition">Honeymoon</Link>
-          <Link href="/packages?category=FAMILY" className="hover:text-orange-500 transition">Family</Link>
-          <Link href="/packages?category=PILGRIMAGE" className="hover:text-orange-500 transition">Pilgrimage</Link>
-          <Link href="/packages?category=GROUP" className="hover:text-orange-500 transition">Group Tours</Link>
+        <div className="hidden items-center gap-2 lg:flex">
+          {navLinks.map((link) => (
+            <Link
+              key={link.label}
+              href={link.href}
+              className={`rounded-full px-3 py-2 text-sm font-semibold transition ${
+                (link.href === '/packages' && isPackagesPage) || pathname === link.href
+                  ? 'bg-slate-900 text-white'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              }`}
+            >
+              {link.label}
+            </Link>
+          ))}
         </div>
 
-        {/* Auth Buttons */}
-        <div className="hidden md:flex items-center gap-3">
+        <div className="hidden items-center gap-4 lg:flex">
           {session?.user ? (
             <>
-              <Link href="/dashboard" className="text-sm text-gray-700 hover:text-orange-500">Dashboard</Link>
-              <span className="text-sm text-gray-600">Hi, {session.user.name}</span>
+              {session.user.role === 'ADMIN' && (
+                <Link href="/admin" className="whitespace-nowrap text-sm font-semibold text-blue-600 hover:text-blue-700">
+                  Admin Panel
+                </Link>
+              )}
+              <Link href="/dashboard" className="whitespace-nowrap text-sm font-semibold text-slate-600 hover:text-slate-900">
+                Dashboard
+              </Link>
+              <span className="whitespace-nowrap text-sm font-semibold text-slate-500">Hi, {userName}</span>
               <button
-                onClick={() => signOut()}
-                className="bg-orange-500 text-white px-4 py-2 rounded-full text-sm hover:bg-orange-600 transition"
+                type="button"
+                onClick={() => void signOut()}
+                className="rounded-full bg-slate-900 px-5 py-2 text-sm font-semibold text-white hover:bg-slate-700"
               >
                 Logout
               </button>
             </>
           ) : (
             <>
-              <Link href="/login" className="text-sm text-gray-700 hover:text-orange-500">Login</Link>
+              <Link href="/login" className="text-sm font-semibold text-slate-600 hover:text-slate-900">
+                Login
+              </Link>
               <Link
                 href="/register"
-                className="bg-orange-500 text-white px-4 py-2 rounded-full text-sm hover:bg-orange-600 transition"
+                className="rounded-full bg-linear-to-r from-orange-500 to-amber-500 px-5 py-2 text-sm font-semibold text-white hover:from-orange-600 hover:to-amber-600"
               >
                 Register
               </Link>
@@ -52,42 +82,65 @@ export default function Navbar() {
           )}
         </div>
 
-        {/* Mobile Hamburger */}
         <button
-          className="md:hidden text-gray-700 text-2xl"
-          onClick={() => setMenuOpen(!menuOpen)}
+          type="button"
+          className="flex h-11 w-11 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-700 lg:hidden"
+          onClick={() => setMenuOpen((prev) => !prev)}
+          aria-label="Toggle menu"
         >
-          {menuOpen ? 'X' : '='}
+          {menuOpen ? <XMarkIcon className="h-6 w-6" /> : <Bars3Icon className="h-6 w-6" />}
         </button>
       </div>
 
-      {/* Mobile Menu */}
       {menuOpen && (
-        <div className="md:hidden bg-white border-t px-4 py-4 flex flex-col gap-4 text-sm text-gray-700">
-          <Link href="/packages" onClick={() => setMenuOpen(false)}>All Packages</Link>
-          <Link href="/packages?category=HONEYMOON" onClick={() => setMenuOpen(false)}>Honeymoon</Link>
-          <Link href="/packages?category=FAMILY" onClick={() => setMenuOpen(false)}>Family</Link>
-          <Link href="/packages?category=PILGRIMAGE" onClick={() => setMenuOpen(false)}>Pilgrimage</Link>
-          <Link href="/packages?category=GROUP" onClick={() => setMenuOpen(false)}>Group Tours</Link>
-          {session?.user ? (
-            <>
-              <Link href="/dashboard" onClick={() => setMenuOpen(false)}>Dashboard</Link>
-              <button
-                onClick={() => {
-                  setMenuOpen(false)
-                  void signOut()
-                }}
-                className="text-left text-red-500"
+        <div className="border-t border-slate-100 bg-white px-4 py-4">
+          <div className="mx-auto flex max-w-7xl flex-col gap-2 text-sm font-medium text-slate-700">
+            {navLinks.map((link) => (
+              <Link
+                key={link.label}
+                href={link.href}
+                onClick={() => setMenuOpen(false)}
+                className={`rounded-xl px-3 py-2 ${
+                  (link.href === '/packages' && isPackagesPage) || pathname === link.href
+                    ? 'bg-slate-900 text-white'
+                    : 'hover:bg-slate-100'
+                }`}
               >
-                Logout
-              </button>
-            </>
-          ) : (
-            <>
-              <Link href="/login" onClick={() => setMenuOpen(false)}>Login</Link>
-              <Link href="/register" onClick={() => setMenuOpen(false)}>Register</Link>
-            </>
-          )}
+                {link.label}
+              </Link>
+            ))}
+            {session?.user ? (
+              <>
+                {session.user.role === 'ADMIN' && (
+                  <Link href="/admin" onClick={() => setMenuOpen(false)} className="rounded-xl px-3 py-2 hover:bg-slate-100">
+                    Admin Panel
+                  </Link>
+                )}
+                <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="rounded-xl px-3 py-2 hover:bg-slate-100">
+                  Dashboard
+                </Link>
+                <span className="px-3 text-slate-500">Hi, {userName}</span>
+                <button
+                  onClick={() => {
+                    setMenuOpen(false)
+                    void signOut()
+                  }}
+                  className="rounded-xl px-3 py-2 text-left text-red-600 hover:bg-red-50"
+                >
+                  Logout
+                </button>
+              </>
+            ) : (
+              <>
+                <Link href="/login" onClick={() => setMenuOpen(false)} className="rounded-xl px-3 py-2 hover:bg-slate-100">
+                  Login
+                </Link>
+                <Link href="/register" onClick={() => setMenuOpen(false)} className="rounded-xl bg-orange-500 px-3 py-2 text-white hover:bg-orange-600">
+                  Register
+                </Link>
+              </>
+            )}
+          </div>
         </div>
       )}
     </nav>

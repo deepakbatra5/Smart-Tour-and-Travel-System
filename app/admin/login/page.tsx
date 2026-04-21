@@ -1,32 +1,35 @@
 'use client'
 
 import { useState } from 'react'
-import { signIn } from 'next-auth/react'
 import Link from 'next/link'
+import { getSession, signIn, signOut } from 'next-auth/react'
 
-export default function LoginPage() {
+function getSafeCallbackPath() {
+  if (typeof window === 'undefined') return '/admin'
+
+  const rawCallback = new URLSearchParams(window.location.search).get('callbackUrl')
+  if (!rawCallback) return '/admin'
+
+  try {
+    const callbackUrl = new URL(rawCallback, window.location.origin)
+
+    if (callbackUrl.origin !== window.location.origin) return '/admin'
+
+    const pathWithQuery = `${callbackUrl.pathname}${callbackUrl.search}${callbackUrl.hash}`
+    if (!pathWithQuery.startsWith('/admin') || pathWithQuery === '/admin/login') {
+      return '/admin'
+    }
+
+    return pathWithQuery
+  } catch {
+    return rawCallback.startsWith('/admin') && rawCallback !== '/admin/login' ? rawCallback : '/admin'
+  }
+}
+
+export default function AdminLoginPage() {
   const [form, setForm] = useState({ email: '', password: '' })
   const [error, setError] = useState('')
   const [loading, setLoading] = useState(false)
-
-  const getSafeCallbackPath = () => {
-    const rawCallback = new URLSearchParams(window.location.search).get('callbackUrl')
-
-    if (!rawCallback) return '/'
-
-    try {
-      const callbackUrl = new URL(rawCallback, window.location.origin)
-
-      if (callbackUrl.origin !== window.location.origin) {
-        return '/'
-      }
-
-      const pathWithQuery = `${callbackUrl.pathname}${callbackUrl.search}${callbackUrl.hash}`
-      return pathWithQuery || '/'
-    } catch {
-      return rawCallback.startsWith('/') ? rawCallback : '/'
-    }
-  }
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -38,20 +41,26 @@ export default function LoginPage() {
     const result = await signIn('credentials', {
       email: form.email,
       password: form.password,
-      callbackUrl: safeCallbackPath,
       redirect: false,
+      callbackUrl: safeCallbackPath,
     })
 
-    setLoading(false)
-
-    if (result?.error) {
+    if (result?.error || !result?.ok) {
+      setLoading(false)
       setError('Invalid email or password. Please try again.')
-    } else if (!result?.ok) {
-      setError('Unable to login right now. Please try again.')
-    } else {
-      // Use sanitized callback path directly to avoid callback URL loop issues in production.
-      window.location.assign(safeCallbackPath)
+      return
     }
+
+    const session = await getSession()
+
+    if (session?.user?.role !== 'ADMIN') {
+      await signOut({ redirect: false })
+      setLoading(false)
+      setError('This account is not an admin account.')
+      return
+    }
+
+    window.location.assign(safeCallbackPath)
   }
 
   return (
@@ -61,10 +70,10 @@ export default function LoginPage() {
       <div className="surface-card relative w-full max-w-md rounded-3xl p-8">
         <div className="mb-8 text-center">
           <Link href="/" className="inline-flex rounded-full border border-orange-200 bg-orange-50 px-4 py-1 text-xs font-bold uppercase tracking-[0.2em] text-orange-700">
-            Travel Sphere
+            Travel Sphere Admin
           </Link>
-          <h1 className="mt-4 text-2xl font-extrabold text-slate-900">Welcome Back</h1>
-          <p className="mt-1 text-sm text-slate-600">Login to continue your travel planning</p>
+          <h1 className="mt-4 text-2xl font-extrabold text-slate-900">Admin Login</h1>
+          <p className="mt-1 text-sm text-slate-600">Sign in with an admin account to manage the site</p>
         </div>
 
         {error && (
@@ -81,7 +90,7 @@ export default function LoginPage() {
               required
               value={form.email}
               onChange={(e) => setForm({ ...form, email: e.target.value })}
-              placeholder="you@example.com"
+              placeholder="admin@example.com"
               className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700"
             />
           </div>
@@ -101,16 +110,16 @@ export default function LoginPage() {
           <button
             type="submit"
             disabled={loading}
-            className="w-full rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 py-3 font-bold text-white hover:from-orange-600 hover:to-amber-600 disabled:opacity-60"
+            className="w-full rounded-2xl bg-linear-to-r from-orange-500 to-amber-500 py-3 font-bold text-white hover:from-orange-600 hover:to-amber-600 disabled:opacity-60"
           >
-            {loading ? 'Logging in...' : 'Login'}
+            {loading ? 'Signing in...' : 'Enter Admin Panel'}
           </button>
         </form>
 
         <p className="mt-6 text-center text-sm text-slate-600">
-          Do not have an account?{' '}
-          <Link href="/register" className="font-semibold text-orange-600 hover:underline">
-            Register here
+          Need the main site login?{' '}
+          <Link href="/login" className="font-semibold text-orange-600 hover:underline">
+            Go to user login
           </Link>
         </p>
       </div>

@@ -1803,7 +1803,7 @@ Test these URLs in your browser:
 
 ---
 # Phase 3 — Login, Register, Booking Flow and Razorpay Payment
-### Travel Website (Kinghills Clone) — Complete Guide
+### Travel Website (Travel Sphere Clone) — Complete Guide
 
 ---
 
@@ -1929,7 +1929,7 @@ export default function LoginPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <Link href="/" className="text-2xl font-bold text-orange-500">
-            KingHills Travels
+            Travel Sphere
           </Link>
           <h1 className="text-xl font-bold text-gray-800 mt-4">Welcome Back</h1>
           <p className="text-gray-500 text-sm mt-1">Login to your account to continue</p>
@@ -2058,7 +2058,7 @@ export default function RegisterPage() {
         {/* Header */}
         <div className="text-center mb-8">
           <Link href="/" className="text-2xl font-bold text-orange-500">
-            KingHills Travels
+            Travel Sphere
           </Link>
           <h1 className="text-xl font-bold text-gray-800 mt-4">Create Account</h1>
           <p className="text-gray-500 text-sm mt-1">Join thousands of happy travelers</p>
@@ -2294,7 +2294,7 @@ export default function BookingPage({ params }: { params: { packageId: string } 
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
         amount: orderData.amount,
         currency: 'INR',
-        name: 'KingHills Travels',
+        name: 'Travel Sphere',
         description: pkg?.title,
         order_id: orderData.id,
         prefill: {
@@ -3000,12 +3000,12 @@ export async function sendBookingConfirmationEmail(booking: any) {
     <body>
       <div class="container">
         <div class="header">
-          <h1>KingHills Travels</h1>
+          <h1>Travel Sphere</h1>
           <p style="margin: 8px 0 0 0; opacity: 0.9;">Your booking is confirmed!</p>
         </div>
         <div class="body">
           <p>Dear <strong>${user.name}</strong>,</p>
-          <p>Thank you for booking with KingHills Travels. Your trip has been confirmed and we are excited to take you on this journey!</p>
+          <p>Thank you for booking with Travel Sphere. Your trip has been confirmed and we are excited to take you on this journey!</p>
 
           <span class="badge">BOOKING CONFIRMED</span>
 
@@ -3044,7 +3044,7 @@ export async function sendBookingConfirmationEmail(booking: any) {
           <a href="https://wa.me/918603606089" class="btn">Chat on WhatsApp</a>
         </div>
         <div class="footer">
-          <p>KingHills Travels | Amritsar, Punjab, India</p>
+          <p>Travel Sphere | Amritsar, Punjab, India</p>
           <p>Phone: +91 8603606089 | Email: deepankumar81c401a1e8@gmail.com</p>
           <p style="margin-top: 8px;">This is an automated email. Please do not reply directly to this email.</p>
         </div>
@@ -3055,7 +3055,7 @@ export async function sendBookingConfirmationEmail(booking: any) {
 
   try {
     await transporter.sendMail({
-      from: `"KingHills Travels" <${process.env.EMAIL_USER}>`,
+      from: `"Travel Sphere" <${process.env.EMAIL_USER}>`,
       to: user.email,
       subject: `Booking Confirmed — ${pkg.title}`,
       html,
@@ -3195,4 +3195,1202 @@ Reply "Phase 3 done" when you are ready and I will guide you through Phase 4 wit
 
 ---
 
-Made for KingHills Clone Project — Full Stack Travel Website
+Made for Travel Sphere Clone Project — Full Stack Travel Website
+
+
+
+# Phase 4 — Admin Dashboard
+### Travel Website (Travel Sphere Clone) — Complete Guide
+
+---
+
+## Table of Contents
+1. What We Build in Phase 4
+2. Admin Layout and Sidebar
+3. Admin Dashboard Home Stats
+4. Admin Package List
+5. Admin Add New Package
+6. Admin Edit Package
+7. Admin Bookings Management
+8. Admin Customers Page
+9. Cloudinary Image Upload
+10. Image Upload API
+11. Booking Status Update API
+12. Make First Admin User
+13. Run and Test
+14. Phase 4 Checklist
+15. Full Project Complete
+
+---
+
+## 1. What We Build in Phase 4
+
+| Feature | Description |
+|---------|-------------|
+| Admin Sidebar Layout | Navigation sidebar for all admin pages |
+| Stats Dashboard | Total bookings, revenue, users, packages |
+| Package List | Table of all packages with edit and delete |
+| Add Package Form | Full form with Cloudinary image upload |
+| Edit Package | Pre-filled edit form for existing packages |
+| Bookings Table | All bookings with status update dropdown |
+| Customers Table | All registered users with booking count |
+| Image Upload API | Upload images to Cloudinary |
+
+---
+
+## 2. Admin Layout and Sidebar
+
+Create file: app/admin/layout.tsx
+
+```tsx
+'use client'
+
+import { useState } from 'react'
+import Link from 'next/link'
+import { usePathname } from 'next/navigation'
+import { signOut } from 'next-auth/react'
+
+const navItems = [
+  { href: '/admin', label: 'Dashboard' },
+  { href: '/admin/packages', label: 'Packages' },
+  { href: '/admin/packages/new', label: 'Add Package' },
+  { href: '/admin/bookings', label: 'Bookings' },
+  { href: '/admin/customers', label: 'Customers' },
+]
+
+export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname()
+  const [sidebarOpen, setSidebarOpen] = useState(false)
+
+  return (
+    <div className="min-h-screen bg-gray-100 flex">
+
+      {/* Sidebar */}
+      <aside className={`
+        fixed inset-y-0 left-0 z-50 w-64 bg-gray-900 text-white transform transition-transform duration-200
+        ${sidebarOpen ? 'translate-x-0' : '-translate-x-full'}
+        lg:relative lg:translate-x-0 lg:flex lg:flex-col
+      `}>
+        <div className="px-6 py-5 border-b border-gray-700">
+          <Link href="/" className="text-xl font-bold text-orange-400">Travel Sphere Admin</Link>
+          <p className="text-xs text-gray-400 mt-1">Management Panel</p>
+        </div>
+
+        <nav className="flex-1 px-4 py-6 space-y-1">
+          {navItems.map((item) => {
+            const isActive = pathname === item.href
+            return (
+              <Link
+                key={item.href}
+                href={item.href}
+                onClick={() => setSidebarOpen(false)}
+                className={`flex items-center gap-3 px-4 py-3 rounded-xl text-sm font-medium transition
+                  ${isActive ? 'bg-orange-500 text-white' : 'text-gray-300 hover:bg-gray-800 hover:text-white'}`}
+              >
+                {item.label}
+              </Link>
+            )
+          })}
+        </nav>
+
+        <div className="px-4 py-4 border-t border-gray-700 space-y-2">
+          <Link href="/" className="flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-gray-300 hover:bg-gray-800 transition">
+            View Website
+          </Link>
+          <button
+            onClick={() => signOut({ callbackUrl: '/' })}
+            className="w-full flex items-center gap-3 px-4 py-3 rounded-xl text-sm text-red-400 hover:bg-gray-800 transition"
+          >
+            Logout
+          </button>
+        </div>
+      </aside>
+
+      {/* Mobile overlay */}
+      {sidebarOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 z-40 lg:hidden" onClick={() => setSidebarOpen(false)} />
+      )}
+
+      {/* Main Content */}
+      <div className="flex-1 flex flex-col min-w-0">
+        <header className="bg-white shadow-sm px-6 py-4 flex items-center justify-between">
+          <button onClick={() => setSidebarOpen(true)} className="lg:hidden text-gray-500 text-xl">Menu</button>
+          <h1 className="text-lg font-semibold text-gray-700">Admin Panel</h1>
+          <span className="text-sm text-gray-400">Travel Sphere</span>
+        </header>
+        <main className="flex-1 p-6 overflow-auto">
+          {children}
+        </main>
+      </div>
+    </div>
+  )
+}
+```
+
+---
+
+## 3. Admin Dashboard Home Stats
+
+Create file: app/admin/page.tsx
+
+```tsx
+import { prisma } from '@/lib/db'
+import Link from 'next/link'
+
+async function getStats() {
+  const [totalBookings, totalUsers, totalPackages, revenueResult, recentBookings, pendingBookings] =
+    await Promise.all([
+      prisma.booking.count(),
+      prisma.user.count({ where: { role: 'USER' } }),
+      prisma.package.count({ where: { isActive: true } }),
+      prisma.booking.aggregate({ _sum: { totalAmount: true }, where: { status: 'CONFIRMED' } }),
+      prisma.booking.findMany({
+        take: 5,
+        orderBy: { createdAt: 'desc' },
+        include: { user: true, package: true },
+      }),
+      prisma.booking.count({ where: { status: 'PENDING' } }),
+    ])
+
+  return {
+    totalBookings, totalUsers, totalPackages,
+    totalRevenue: revenueResult._sum.totalAmount || 0,
+    recentBookings, pendingBookings,
+  }
+}
+
+function StatusBadge({ status }: { status: string }) {
+  const colors: Record<string, string> = {
+    CONFIRMED: 'bg-green-100 text-green-700',
+    PENDING: 'bg-yellow-100 text-yellow-700',
+    CANCELLED: 'bg-red-100 text-red-700',
+    COMPLETED: 'bg-blue-100 text-blue-700',
+  }
+  return (
+    <span className={`px-2 py-1 rounded-full text-xs font-semibold ${colors[status] || 'bg-gray-100 text-gray-600'}`}>
+      {status}
+    </span>
+  )
+}
+
+export default async function AdminDashboard() {
+  const stats = await getStats()
+
+  const statCards = [
+    { label: 'Total Bookings', value: stats.totalBookings, bg: 'bg-blue-500', link: '/admin/bookings' },
+    { label: 'Total Revenue', value: `Rs ${stats.totalRevenue.toLocaleString('en-IN')}`, bg: 'bg-green-500', link: '/admin/bookings' },
+    { label: 'Active Packages', value: stats.totalPackages, bg: 'bg-orange-500', link: '/admin/packages' },
+    { label: 'Registered Users', value: stats.totalUsers, bg: 'bg-purple-500', link: '/admin/customers' },
+  ]
+
+  return (
+    <div className="space-y-8">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-800">Dashboard Overview</h1>
+        <p className="text-gray-500 text-sm mt-1">Welcome back! Here is what is happening today.</p>
+      </div>
+
+      {stats.pendingBookings > 0 && (
+        <div className="bg-yellow-50 border border-yellow-200 rounded-xl px-5 py-4 flex items-center justify-between">
+          <p className="text-yellow-700 text-sm font-medium">
+            You have {stats.pendingBookings} pending booking(s) that need attention.
+          </p>
+          <Link href="/admin/bookings?status=PENDING" className="text-yellow-600 text-sm font-semibold hover:underline">
+            View Now
+          </Link>
+        </div>
+      )}
+
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
+        {statCards.map((card) => (
+          <Link key={card.label} href={card.link}>
+            <div className={`${card.bg} text-white rounded-2xl p-5 hover:opacity-90 transition cursor-pointer`}>
+              <p className="text-sm opacity-80 mb-1">{card.label}</p>
+              <p className="text-2xl font-bold">{card.value}</p>
+            </div>
+          </Link>
+        ))}
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm p-6">
+        <div className="flex items-center justify-between mb-5">
+          <h2 className="font-bold text-gray-800">Recent Bookings</h2>
+          <Link href="/admin/bookings" className="text-orange-500 text-sm hover:underline">View All</Link>
+        </div>
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead>
+              <tr className="text-left text-gray-400 border-b border-gray-100">
+                <th className="pb-3 font-medium">Customer</th>
+                <th className="pb-3 font-medium">Package</th>
+                <th className="pb-3 font-medium">Travel Date</th>
+                <th className="pb-3 font-medium">Amount</th>
+                <th className="pb-3 font-medium">Status</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {stats.recentBookings.map((booking) => (
+                <tr key={booking.id} className="hover:bg-gray-50">
+                  <td className="py-3 font-medium text-gray-700">{booking.user.name}</td>
+                  <td className="py-3 text-gray-500 truncate max-w-[150px]">{booking.package.title}</td>
+                  <td className="py-3 text-gray-500">{new Date(booking.travelDate).toLocaleDateString('en-IN')}</td>
+                  <td className="py-3 font-medium">Rs {booking.totalAmount.toLocaleString('en-IN')}</td>
+                  <td className="py-3"><StatusBadge status={booking.status} /></td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {stats.recentBookings.length === 0 && (
+            <p className="text-center text-gray-400 py-8">No bookings yet</p>
+          )}
+        </div>
+      </div>
+
+      <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+        <Link href="/admin/packages/new" className="bg-orange-500 text-white text-center py-4 rounded-2xl font-semibold hover:bg-orange-600 transition">Add New Package</Link>
+        <Link href="/admin/bookings" className="bg-blue-500 text-white text-center py-4 rounded-2xl font-semibold hover:bg-blue-600 transition">Manage Bookings</Link>
+        <Link href="/admin/customers" className="bg-purple-500 text-white text-center py-4 rounded-2xl font-semibold hover:bg-purple-600 transition">View Customers</Link>
+      </div>
+    </div>
+  )
+}
+```
+
+---
+
+## 4. Admin Package List
+
+Create file: app/admin/packages/page.tsx
+
+```tsx
+import { prisma } from '@/lib/db'
+import Link from 'next/link'
+import DeletePackageButton from './DeletePackageButton'
+
+export default async function AdminPackagesPage() {
+  const packages = await prisma.package.findMany({
+    orderBy: { createdAt: 'desc' },
+    include: { _count: { select: { bookings: true } } }
+  })
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold text-gray-800">Packages</h1>
+          <p className="text-gray-500 text-sm mt-1">{packages.length} total packages</p>
+        </div>
+        <Link href="/admin/packages/new" className="bg-orange-500 text-white px-5 py-2.5 rounded-xl text-sm font-semibold hover:bg-orange-600 transition">
+          Add New Package
+        </Link>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-100">
+              <tr className="text-left text-gray-500">
+                <th className="px-5 py-4 font-medium">Package</th>
+                <th className="px-5 py-4 font-medium">Category</th>
+                <th className="px-5 py-4 font-medium">Duration</th>
+                <th className="px-5 py-4 font-medium">Price</th>
+                <th className="px-5 py-4 font-medium">Bookings</th>
+                <th className="px-5 py-4 font-medium">Status</th>
+                <th className="px-5 py-4 font-medium">Actions</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {packages.map((pkg) => (
+                <tr key={pkg.id} className="hover:bg-gray-50">
+                  <td className="px-5 py-4">
+                    <div className="font-medium text-gray-800 max-w-[200px] truncate">{pkg.title}</div>
+                    <div className="text-gray-400 text-xs mt-0.5">{pkg.destination}</div>
+                  </td>
+                  <td className="px-5 py-4">
+                    <span className="bg-orange-100 text-orange-600 text-xs font-semibold px-2 py-1 rounded-full">{pkg.category}</span>
+                  </td>
+                  <td className="px-5 py-4 text-gray-600">{pkg.duration} Days</td>
+                  <td className="px-5 py-4 font-medium text-gray-800">Rs {pkg.price.toLocaleString('en-IN')}</td>
+                  <td className="px-5 py-4 text-gray-600">{pkg._count.bookings}</td>
+                  <td className="px-5 py-4">
+                    <span className={`text-xs font-semibold px-2 py-1 rounded-full ${pkg.isActive ? 'bg-green-100 text-green-700' : 'bg-red-100 text-red-600'}`}>
+                      {pkg.isActive ? 'Active' : 'Inactive'}
+                    </span>
+                  </td>
+                  <td className="px-5 py-4">
+                    <div className="flex items-center gap-3">
+                      <Link href={`/admin/packages/${pkg.id}/edit`} className="text-blue-500 hover:underline text-xs font-medium">Edit</Link>
+                      <DeletePackageButton id={pkg.id} />
+                    </div>
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {packages.length === 0 && (
+            <div className="text-center py-12 text-gray-400">
+              <p>No packages yet.</p>
+              <Link href="/admin/packages/new" className="text-orange-500 text-sm mt-2 inline-block hover:underline">Add your first package</Link>
+            </div>
+          )}
+        </div>
+      </div>
+    </div>
+  )
+}
+```
+
+Create file: app/admin/packages/DeletePackageButton.tsx
+
+```tsx
+'use client'
+
+import { useRouter } from 'next/navigation'
+
+export default function DeletePackageButton({ id }: { id: string }) {
+  const router = useRouter()
+
+  const handleDelete = async () => {
+    if (!confirm('Are you sure you want to delete this package?')) return
+    await fetch(`/api/packages/${id}`, { method: 'DELETE' })
+    router.refresh()
+  }
+
+  return (
+    <button onClick={handleDelete} className="text-red-500 hover:underline text-xs font-medium">
+      Delete
+    </button>
+  )
+}
+```
+
+---
+
+## 5. Admin Add New Package
+
+Create file: app/admin/packages/new/page.tsx
+
+```tsx
+'use client'
+
+import { useState } from 'react'
+import { useRouter } from 'next/navigation'
+
+const categories = ['FAMILY', 'HONEYMOON', 'GROUP', 'PILGRIMAGE', 'ADVENTURE', 'SOLO', 'CORPORATE']
+
+interface ItineraryDay {
+  day: number
+  title: string
+  description: string
+}
+
+export default function AddPackagePage() {
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [uploadingImage, setUploadingImage] = useState(false)
+  const [images, setImages] = useState<string[]>([])
+
+  const [form, setForm] = useState({
+    title: '', destination: '', description: '',
+    price: '', duration: '', category: 'FAMILY',
+    inclusions: '', exclusions: '',
+  })
+
+  const [itinerary, setItinerary] = useState<ItineraryDay[]>([{ day: 1, title: '', description: '' }])
+
+  const updateField = (field: string, value: string) => setForm((prev) => ({ ...prev, [field]: value }))
+
+  const updateItinerary = (index: number, field: keyof ItineraryDay, value: string) => {
+    const updated = [...itinerary]
+    updated[index] = { ...updated[index], [field]: value }
+    setItinerary(updated)
+  }
+
+  const addDay = () => setItinerary([...itinerary, { day: itinerary.length + 1, title: '', description: '' }])
+
+  const removeDay = (index: number) => {
+    if (itinerary.length <= 1) return
+    setItinerary(itinerary.filter((_, i) => i !== index).map((d, i) => ({ ...d, day: i + 1 })))
+  }
+
+  const handleImageUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (!file) return
+    setUploadingImage(true)
+    const formData = new FormData()
+    formData.append('file', file)
+    const res = await fetch('/api/upload', { method: 'POST', body: formData })
+    const data = await res.json()
+    if (data.url) setImages((prev) => [...prev, data.url])
+    setUploadingImage(false)
+  }
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+
+    const res = await fetch('/api/packages', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...form,
+        price: parseFloat(form.price),
+        duration: parseInt(form.duration),
+        images,
+        itinerary,
+        inclusions: form.inclusions.split('\n').filter(Boolean),
+        exclusions: form.exclusions.split('\n').filter(Boolean),
+      }),
+    })
+
+    setLoading(false)
+    if (res.ok) { router.push('/admin/packages'); router.refresh() }
+    else alert('Failed to create package. Please try again.')
+  }
+
+  return (
+    <div className="max-w-3xl space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-800">Add New Package</h1>
+        <p className="text-gray-500 text-sm mt-1">Fill in all the details for the new tour package</p>
+      </div>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+
+        {/* Basic Info */}
+        <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+          <h2 className="font-bold text-gray-700">Basic Information</h2>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Package Title</label>
+            <input type="text" required value={form.title} onChange={(e) => updateField('title', e.target.value)}
+              placeholder="e.g. Golden Triangle Tour"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400" />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Destination</label>
+            <input type="text" required value={form.destination} onChange={(e) => updateField('destination', e.target.value)}
+              placeholder="e.g. Delhi - Agra - Jaipur"
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400" />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <textarea required rows={4} value={form.description} onChange={(e) => updateField('description', e.target.value)}
+              placeholder="Write a detailed description of the package..."
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 resize-none" />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Price (Rs)</label>
+              <input type="number" required min="0" value={form.price} onChange={(e) => updateField('price', e.target.value)}
+                placeholder="15000" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Duration (Days)</label>
+              <input type="number" required min="1" value={form.duration} onChange={(e) => updateField('duration', e.target.value)}
+                placeholder="6" className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+              <select value={form.category} onChange={(e) => updateField('category', e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
+                {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+          </div>
+        </div>
+
+        {/* Image Upload */}
+        <div className="bg-white rounded-2xl shadow-sm p-6">
+          <h2 className="font-bold text-gray-700 mb-4">Package Images</h2>
+          <label className="block cursor-pointer">
+            <div className="border-2 border-dashed border-gray-200 rounded-xl p-6 text-center hover:border-orange-400 transition">
+              <p className="text-gray-400 text-sm">{uploadingImage ? 'Uploading...' : 'Click to upload an image'}</p>
+              <p className="text-gray-300 text-xs mt-1">JPG, PNG up to 5MB</p>
+            </div>
+            <input type="file" accept="image/*" onChange={handleImageUpload} disabled={uploadingImage} className="hidden" />
+          </label>
+
+          {images.length > 0 && (
+            <div className="grid grid-cols-3 gap-3 mt-4">
+              {images.map((url, i) => (
+                <div key={i} className="relative group">
+                  <img src={url} alt={`Image ${i + 1}`} className="w-full h-24 object-cover rounded-lg" />
+                  <button type="button" onClick={() => setImages(images.filter((_, idx) => idx !== i))}
+                    className="absolute top-1 right-1 bg-red-500 text-white text-xs px-2 py-0.5 rounded opacity-0 group-hover:opacity-100 transition">
+                    Remove
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+
+        {/* Itinerary */}
+        <div className="bg-white rounded-2xl shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-bold text-gray-700">Day-wise Itinerary</h2>
+            <button type="button" onClick={addDay} className="text-orange-500 text-sm font-medium hover:underline">Add Day</button>
+          </div>
+          <div className="space-y-4">
+            {itinerary.map((day, i) => (
+              <div key={i} className="border border-gray-100 rounded-xl p-4">
+                <div className="flex items-center justify-between mb-3">
+                  <span className="font-semibold text-sm text-gray-700">Day {day.day}</span>
+                  {itinerary.length > 1 && (
+                    <button type="button" onClick={() => removeDay(i)} className="text-red-400 text-xs hover:underline">Remove</button>
+                  )}
+                </div>
+                <div className="space-y-3">
+                  <input type="text" required value={day.title} onChange={(e) => updateItinerary(i, 'title', e.target.value)}
+                    placeholder="Day title e.g. Arrival in Delhi"
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400" />
+                  <textarea required rows={2} value={day.description} onChange={(e) => updateItinerary(i, 'description', e.target.value)}
+                    placeholder="What happens on this day..."
+                    className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 resize-none" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        {/* Inclusions and Exclusions */}
+        <div className="bg-white rounded-2xl shadow-sm p-6">
+          <h2 className="font-bold text-gray-700 mb-4">Inclusions and Exclusions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Inclusions (one per line)</label>
+              <textarea rows={6} value={form.inclusions} onChange={(e) => updateField('inclusions', e.target.value)}
+                placeholder="Hotel accommodation&#10;Daily breakfast&#10;All transfers"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 resize-none" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Exclusions (one per line)</label>
+              <textarea rows={6} value={form.exclusions} onChange={(e) => updateField('exclusions', e.target.value)}
+                placeholder="Flights&#10;Lunch and dinner&#10;Personal expenses"
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 resize-none" />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-3">
+          <button type="button" onClick={() => router.back()}
+            className="flex-1 border border-gray-300 text-gray-600 py-3 rounded-xl font-medium hover:bg-gray-50 transition">
+            Cancel
+          </button>
+          <button type="submit" disabled={loading}
+            className="flex-1 bg-orange-500 text-white py-3 rounded-xl font-semibold hover:bg-orange-600 transition disabled:opacity-50">
+            {loading ? 'Creating Package...' : 'Create Package'}
+          </button>
+        </div>
+
+      </form>
+    </div>
+  )
+}
+```
+
+---
+
+## 6. Admin Edit Package
+
+Create file: app/admin/packages/[id]/edit/page.tsx
+
+```tsx
+'use client'
+
+import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
+
+const categories = ['FAMILY', 'HONEYMOON', 'GROUP', 'PILGRIMAGE', 'ADVENTURE', 'SOLO', 'CORPORATE']
+
+export default function EditPackagePage({ params }: { params: { id: string } }) {
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+  const [fetching, setFetching] = useState(true)
+
+  const [form, setForm] = useState({
+    title: '', destination: '', description: '',
+    price: '', duration: '', category: 'FAMILY',
+    inclusions: '', exclusions: '', isActive: true,
+  })
+
+  const [itinerary, setItinerary] = useState([{ day: 1, title: '', description: '' }])
+
+  useEffect(() => {
+    fetch(`/api/packages/${params.id}`)
+      .then((r) => r.json())
+      .then((pkg) => {
+        setForm({
+          title: pkg.title,
+          destination: pkg.destination,
+          description: pkg.description,
+          price: String(pkg.price),
+          duration: String(pkg.duration),
+          category: pkg.category,
+          inclusions: pkg.inclusions.join('\n'),
+          exclusions: pkg.exclusions.join('\n'),
+          isActive: pkg.isActive,
+        })
+        setItinerary(pkg.itinerary || [{ day: 1, title: '', description: '' }])
+        setFetching(false)
+      })
+  }, [params.id])
+
+  const updateField = (field: string, value: any) => setForm((prev) => ({ ...prev, [field]: value }))
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    setLoading(true)
+
+    const res = await fetch(`/api/packages/${params.id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        ...form,
+        price: parseFloat(form.price),
+        duration: parseInt(form.duration),
+        itinerary,
+        inclusions: form.inclusions.split('\n').filter(Boolean),
+        exclusions: form.exclusions.split('\n').filter(Boolean),
+      }),
+    })
+
+    setLoading(false)
+    if (res.ok) { router.push('/admin/packages'); router.refresh() }
+    else alert('Failed to update package.')
+  }
+
+  if (fetching) return <div className="text-gray-400 py-10 text-center">Loading package...</div>
+
+  return (
+    <div className="max-w-3xl space-y-6">
+      <h1 className="text-2xl font-bold text-gray-800">Edit Package</h1>
+
+      <form onSubmit={handleSubmit} className="space-y-6">
+
+        <div className="bg-white rounded-2xl shadow-sm p-6 space-y-4">
+          <h2 className="font-bold text-gray-700">Basic Information</h2>
+
+          {['title', 'destination'].map((field) => (
+            <div key={field}>
+              <label className="block text-sm font-medium text-gray-700 mb-1 capitalize">{field}</label>
+              <input type="text" required value={(form as any)[field]} onChange={(e) => updateField(field, e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400" />
+            </div>
+          ))}
+
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
+            <textarea required rows={4} value={form.description} onChange={(e) => updateField('description', e.target.value)}
+              className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 resize-none" />
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Price (Rs)</label>
+              <input type="number" required value={form.price} onChange={(e) => updateField('price', e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Duration (Days)</label>
+              <input type="number" required value={form.duration} onChange={(e) => updateField('duration', e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
+              <select value={form.category} onChange={(e) => updateField('category', e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400">
+                {categories.map((c) => <option key={c} value={c}>{c}</option>)}
+              </select>
+            </div>
+          </div>
+
+          <div className="flex items-center gap-3">
+            <input type="checkbox" id="isActive" checked={form.isActive}
+              onChange={(e) => updateField('isActive', e.target.checked)} className="w-4 h-4 accent-orange-500" />
+            <label htmlFor="isActive" className="text-sm text-gray-700">Package is Active (visible on website)</label>
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm p-6">
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="font-bold text-gray-700">Day-wise Itinerary</h2>
+            <button type="button"
+              onClick={() => setItinerary([...itinerary, { day: itinerary.length + 1, title: '', description: '' }])}
+              className="text-orange-500 text-sm font-medium hover:underline">Add Day</button>
+          </div>
+          <div className="space-y-4">
+            {itinerary.map((day, i) => (
+              <div key={i} className="border border-gray-100 rounded-xl p-4">
+                <p className="font-semibold text-sm text-gray-700 mb-3">Day {day.day}</p>
+                <div className="space-y-3">
+                  <input type="text" required value={day.title}
+                    onChange={(e) => { const u = [...itinerary]; u[i] = { ...u[i], title: e.target.value }; setItinerary(u) }}
+                    placeholder="Day title" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400" />
+                  <textarea required rows={2} value={day.description}
+                    onChange={(e) => { const u = [...itinerary]; u[i] = { ...u[i], description: e.target.value }; setItinerary(u) }}
+                    placeholder="Description" className="w-full border border-gray-200 rounded-lg px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 resize-none" />
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+
+        <div className="bg-white rounded-2xl shadow-sm p-6">
+          <h2 className="font-bold text-gray-700 mb-4">Inclusions and Exclusions</h2>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Inclusions (one per line)</label>
+              <textarea rows={6} value={form.inclusions} onChange={(e) => updateField('inclusions', e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 resize-none" />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">Exclusions (one per line)</label>
+              <textarea rows={6} value={form.exclusions} onChange={(e) => updateField('exclusions', e.target.value)}
+                className="w-full border border-gray-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400 resize-none" />
+            </div>
+          </div>
+        </div>
+
+        <div className="flex gap-3">
+          <button type="button" onClick={() => router.back()}
+            className="flex-1 border border-gray-300 text-gray-600 py-3 rounded-xl font-medium hover:bg-gray-50 transition">Cancel</button>
+          <button type="submit" disabled={loading}
+            className="flex-1 bg-orange-500 text-white py-3 rounded-xl font-semibold hover:bg-orange-600 transition disabled:opacity-50">
+            {loading ? 'Saving...' : 'Save Changes'}
+          </button>
+        </div>
+      </form>
+    </div>
+  )
+}
+```
+
+---
+
+## 7. Admin Bookings Management
+
+Create file: app/admin/bookings/page.tsx
+
+```tsx
+import { prisma } from '@/lib/db'
+import UpdateBookingStatus from './UpdateBookingStatus'
+
+export default async function AdminBookingsPage({ searchParams }: { searchParams: { status?: string } }) {
+  const where = searchParams.status ? { status: searchParams.status as any } : {}
+
+  const bookings = await prisma.booking.findMany({
+    where,
+    include: { user: true, package: true, payment: true },
+    orderBy: { createdAt: 'desc' },
+  })
+
+  const statusFilters = ['ALL', 'PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED']
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-800">Bookings</h1>
+        <p className="text-gray-500 text-sm mt-1">{bookings.length} bookings found</p>
+      </div>
+
+      <div className="flex gap-2 flex-wrap">
+        {statusFilters.map((status) => (
+          <a key={status}
+            href={status === 'ALL' ? '/admin/bookings' : `/admin/bookings?status=${status}`}
+            className={`px-4 py-2 rounded-full text-xs font-semibold transition
+              ${(searchParams.status === status || (!searchParams.status && status === 'ALL'))
+                ? 'bg-orange-500 text-white' : 'bg-gray-100 text-gray-600 hover:bg-gray-200'}`}>
+            {status}
+          </a>
+        ))}
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-100">
+              <tr className="text-left text-gray-500">
+                <th className="px-5 py-4 font-medium">Booking ID</th>
+                <th className="px-5 py-4 font-medium">Customer</th>
+                <th className="px-5 py-4 font-medium">Package</th>
+                <th className="px-5 py-4 font-medium">Travel Date</th>
+                <th className="px-5 py-4 font-medium">Travellers</th>
+                <th className="px-5 py-4 font-medium">Amount</th>
+                <th className="px-5 py-4 font-medium">Payment</th>
+                <th className="px-5 py-4 font-medium">Status</th>
+                <th className="px-5 py-4 font-medium">Update</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {bookings.map((booking) => (
+                <tr key={booking.id} className="hover:bg-gray-50">
+                  <td className="px-5 py-4 font-mono text-xs text-gray-500">{booking.id.slice(0, 8).toUpperCase()}</td>
+                  <td className="px-5 py-4">
+                    <div className="font-medium text-gray-700">{booking.user.name}</div>
+                    <div className="text-gray-400 text-xs">{booking.user.email}</div>
+                  </td>
+                  <td className="px-5 py-4 text-gray-600 max-w-[150px] truncate">{booking.package.title}</td>
+                  <td className="px-5 py-4 text-gray-600">{new Date(booking.travelDate).toLocaleDateString('en-IN')}</td>
+                  <td className="px-5 py-4 text-center text-gray-600">{booking.travellers}</td>
+                  <td className="px-5 py-4 font-medium text-gray-800">Rs {booking.totalAmount.toLocaleString('en-IN')}</td>
+                  <td className="px-5 py-4">
+                    <span className={`text-xs font-semibold px-2 py-1 rounded-full
+                      ${booking.payment?.status === 'SUCCESS' ? 'bg-green-100 text-green-700' : 'bg-yellow-100 text-yellow-600'}`}>
+                      {booking.payment?.status || 'PENDING'}
+                    </span>
+                  </td>
+                  <td className="px-5 py-4">
+                    <span className={`text-xs font-semibold px-2 py-1 rounded-full
+                      ${booking.status === 'CONFIRMED' ? 'bg-green-100 text-green-700'
+                        : booking.status === 'PENDING' ? 'bg-yellow-100 text-yellow-700'
+                        : booking.status === 'CANCELLED' ? 'bg-red-100 text-red-600'
+                        : 'bg-blue-100 text-blue-700'}`}>
+                      {booking.status}
+                    </span>
+                  </td>
+                  <td className="px-5 py-4">
+                    <UpdateBookingStatus bookingId={booking.id} currentStatus={booking.status} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {bookings.length === 0 && <p className="text-center text-gray-400 py-10">No bookings found</p>}
+        </div>
+      </div>
+    </div>
+  )
+}
+```
+
+Create file: app/admin/bookings/UpdateBookingStatus.tsx
+
+```tsx
+'use client'
+
+import { useRouter } from 'next/navigation'
+import { useState } from 'react'
+
+export default function UpdateBookingStatus({ bookingId, currentStatus }: { bookingId: string; currentStatus: string }) {
+  const router = useRouter()
+  const [loading, setLoading] = useState(false)
+
+  const handleChange = async (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setLoading(true)
+    await fetch(`/api/bookings/${bookingId}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status: e.target.value }),
+    })
+    setLoading(false)
+    router.refresh()
+  }
+
+  return (
+    <select defaultValue={currentStatus} onChange={handleChange} disabled={loading}
+      className="border border-gray-200 rounded-lg px-2 py-1 text-xs focus:outline-none focus:ring-2 focus:ring-orange-400">
+      {['PENDING', 'CONFIRMED', 'COMPLETED', 'CANCELLED'].map((s) => (
+        <option key={s} value={s}>{s}</option>
+      ))}
+    </select>
+  )
+}
+```
+
+---
+
+## 8. Admin Customers Page
+
+Create file: app/admin/customers/page.tsx
+
+```tsx
+import { prisma } from '@/lib/db'
+
+export default async function AdminCustomersPage() {
+  const users = await prisma.user.findMany({
+    where: { role: 'USER' },
+    orderBy: { createdAt: 'desc' },
+    include: {
+      _count: { select: { bookings: true } },
+      bookings: { select: { totalAmount: true, status: true } }
+    }
+  })
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-gray-800">Customers</h1>
+        <p className="text-gray-500 text-sm mt-1">{users.length} registered customers</p>
+      </div>
+
+      <div className="bg-white rounded-2xl shadow-sm overflow-hidden">
+        <div className="overflow-x-auto">
+          <table className="w-full text-sm">
+            <thead className="bg-gray-50 border-b border-gray-100">
+              <tr className="text-left text-gray-500">
+                <th className="px-5 py-4 font-medium">Customer</th>
+                <th className="px-5 py-4 font-medium">Phone</th>
+                <th className="px-5 py-4 font-medium">Total Bookings</th>
+                <th className="px-5 py-4 font-medium">Total Spent</th>
+                <th className="px-5 py-4 font-medium">Joined</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-gray-50">
+              {users.map((user) => {
+                const totalSpent = user.bookings
+                  .filter((b) => b.status === 'CONFIRMED' || b.status === 'COMPLETED')
+                  .reduce((sum, b) => sum + b.totalAmount, 0)
+                return (
+                  <tr key={user.id} className="hover:bg-gray-50">
+                    <td className="px-5 py-4">
+                      <div className="font-medium text-gray-800">{user.name}</div>
+                      <div className="text-gray-400 text-xs">{user.email}</div>
+                    </td>
+                    <td className="px-5 py-4 text-gray-600">{user.phone || 'Not provided'}</td>
+                    <td className="px-5 py-4 text-center font-medium text-gray-700">{user._count.bookings}</td>
+                    <td className="px-5 py-4 font-medium text-green-600">Rs {totalSpent.toLocaleString('en-IN')}</td>
+                    <td className="px-5 py-4 text-gray-400 text-xs">
+                      {new Date(user.createdAt).toLocaleDateString('en-IN', { day: 'numeric', month: 'short', year: 'numeric' })}
+                    </td>
+                  </tr>
+                )
+              })}
+            </tbody>
+          </table>
+          {users.length === 0 && <p className="text-center text-gray-400 py-10">No customers yet</p>}
+        </div>
+      </div>
+    </div>
+  )
+}
+```
+
+---
+
+## 9. Cloudinary Setup
+
+1. Go to cloudinary.com and create a free account
+2. Go to Settings then Upload then Upload Presets
+3. Create a new preset — set Signing Mode to Unsigned
+4. Copy the preset name
+
+Add these to your .env.local:
+
+```env
+CLOUDINARY_CLOUD_NAME="your_cloud_name"
+CLOUDINARY_API_KEY="your_api_key"
+CLOUDINARY_API_SECRET="your_api_secret"
+NEXT_PUBLIC_CLOUDINARY_CLOUD_NAME="your_cloud_name"
+```
+
+---
+
+## 10. Image Upload API
+
+Create file: app/api/upload/route.ts
+
+```typescript
+import { NextResponse } from 'next/server'
+import { v2 as cloudinary } from 'cloudinary'
+
+cloudinary.config({
+  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
+  api_key: process.env.CLOUDINARY_API_KEY,
+  api_secret: process.env.CLOUDINARY_API_SECRET,
+})
+
+export async function POST(req: Request) {
+  try {
+    const formData = await req.formData()
+    const file = formData.get('file') as File
+
+    if (!file) return NextResponse.json({ error: 'No file provided' }, { status: 400 })
+
+    const bytes = await file.arrayBuffer()
+    const buffer = Buffer.from(bytes)
+    const base64 = `data:${file.type};base64,${buffer.toString('base64')}`
+
+    const result = await cloudinary.uploader.upload(base64, {
+      folder: 'travel-sphere-packages',
+      transformation: [{ width: 1200, height: 800, crop: 'fill', quality: 'auto' }]
+    })
+
+    return NextResponse.json({ url: result.secure_url })
+  } catch (error) {
+    return NextResponse.json({ error: 'Upload failed' }, { status: 500 })
+  }
+}
+```
+
+---
+
+## 11. Booking Status Update API
+
+Create file: app/api/bookings/[id]/route.ts
+
+```typescript
+import { NextResponse } from 'next/server'
+import { prisma } from '@/lib/db'
+
+export async function PATCH(req: Request, { params }: { params: { id: string } }) {
+  try {
+    const { status } = await req.json()
+    const booking = await prisma.booking.update({
+      where: { id: params.id },
+      data: { status },
+    })
+    return NextResponse.json(booking)
+  } catch {
+    return NextResponse.json({ error: 'Failed to update booking' }, { status: 500 })
+  }
+}
+
+export async function GET(req: Request, { params }: { params: { id: string } }) {
+  try {
+    const booking = await prisma.booking.findUnique({
+      where: { id: params.id },
+      include: { user: true, package: true, payment: true }
+    })
+    if (!booking) return NextResponse.json({ error: 'Not found' }, { status: 404 })
+    return NextResponse.json(booking)
+  } catch {
+    return NextResponse.json({ error: 'Failed to fetch booking' }, { status: 500 })
+  }
+}
+```
+
+---
+
+## 12. Make First Admin User
+
+After registering your account on the website, run these commands to make yourself admin.
+
+Open terminal and run:
+
+```bash
+psql -U postgres -d travel_sphere_db
+```
+
+Then run this SQL — replace the email with YOUR email:
+
+```sql
+UPDATE "User" SET role = 'ADMIN' WHERE email = 'youremail@gmail.com';
+```
+
+Confirm it worked:
+
+```sql
+SELECT name, email, role FROM "User";
+```
+
+Exit:
+
+```sql
+\q
+```
+
+Now login to your website and you will see Admin Panel in the top navbar.
+
+---
+
+## 13. Run and Test
+
+```bash
+npm run dev
+```
+
+Test these pages:
+
+| URL | What You Should See |
+|-----|---------------------|
+| localhost:3000/admin | Stats dashboard with 4 cards |
+| localhost:3000/admin/packages | All packages in a table |
+| localhost:3000/admin/packages/new | Add package form with image upload |
+| localhost:3000/admin/packages/ID/edit | Edit form pre-filled |
+| localhost:3000/admin/bookings | All bookings with status dropdown |
+| localhost:3000/admin/customers | All registered users table |
+| Visit /admin without admin role | Redirected to home page |
+
+---
+
+## Phase 4 Checklist
+
+| Number | Task | Done |
+|--------|------|------|
+| 1 | app/admin/layout.tsx created with sidebar | No |
+| 2 | Admin dashboard stats page working | No |
+| 3 | Admin packages list page working | No |
+| 4 | DeletePackageButton.tsx created | No |
+| 5 | Add new package form working | No |
+| 6 | Edit package form working | No |
+| 7 | Admin bookings page working | No |
+| 8 | UpdateBookingStatus.tsx created | No |
+| 9 | app/api/bookings/[id]/route.ts PATCH created | No |
+| 10 | Admin customers page working | No |
+| 11 | Cloudinary account created and keys added | No |
+| 12 | app/api/upload/route.ts created | No |
+| 13 | Image upload works in add package form | No |
+| 14 | Made yourself admin via SQL command | No |
+| 15 | Admin Panel link shows in navbar | No |
+| 16 | Non-admin users cannot access /admin | No |
+
+---
+
+## Full Project Complete — What to Do Next
+
+Congratulations! All 4 phases are complete. Your website now has:
+
+- Public pages — Home, Package Listing, Package Detail with WhatsApp button
+- Auth system — Login, Register, JWT sessions, protected routes
+- Full booking flow — 3-step form with Razorpay payment and email confirmation
+- Admin dashboard — Manage packages, bookings, customers, image upload
+
+### Deploy Your Website
+
+Step 1 — Push to GitHub:
+
+
+```
+
+Step 2 — Free Production Database (Neon or Supabase):
+1. Go to neon.tech or supabase.com
+2. Create a free PostgreSQL database
+3. Copy the connection string
+4. Run: npx prisma db push
+
+Step 3 — Deploy to Vercel (free):
+1. Go to vercel.com
+2. Import your GitHub repo
+3. Add all environment variables from .env.local
+4. Change DATABASE_URL to your production database URL
+5. Click Deploy — your site is live!
+
+Step 4 — Custom Domain:
+1. Buy a domain from GoDaddy or Namecheap (around Rs 700 per year)
+2. In Vercel go to Settings then Domains
+3. Add your domain and update the DNS settings
+
+### Extra Features to Add Later
+
+| Feature | Description |
+|---------|-------------|
+| Google OAuth | Let users sign in with Google |
+| Group Departure Calendar | Show fixed departure dates like Travel Sphere |
+| Blog Section | SEO travel articles for better Google ranking |
+| Coupon Codes | Discount coupons applied at checkout |
+| SMS Notifications | Send booking SMS via MSG91 |
+| Google Analytics | Track website visitors |
+| Reviews System | Let users rate and review trips after returning |
+
+---
+
+All 4 Phases Complete — Travel Sphere Clone Travel Website
+Phase 1: Project Setup and Auth
+Phase 2: Package Listings and UI
+Phase 3: Booking Flow and Razorpay Payment
+Phase 4: Admin Dashboard

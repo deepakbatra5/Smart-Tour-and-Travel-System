@@ -1,6 +1,7 @@
 import { config as loadEnv } from 'dotenv'
 import { PrismaPg } from '@prisma/adapter-pg'
 import { PrismaClient, type Prisma } from '../generated/prisma/client.ts'
+import bcrypt from 'bcryptjs'
 
 loadEnv({ path: '.env.local' })
 loadEnv({ path: '.env' })
@@ -18,6 +19,27 @@ type SeedPackage = Prisma.PackageCreateInput
 
 async function main() {
   console.log('Seeding database...')
+
+  const adminEmail = process.env.SEED_ADMIN_EMAIL || 'admin@travelsphere.com'
+  const adminPassword = process.env.SEED_ADMIN_PASSWORD || 'Admin@12345'
+  const adminPasswordHash = await bcrypt.hash(adminPassword, 10)
+
+  await prisma.user.upsert({
+    where: { email: adminEmail },
+    update: {
+      name: 'Admin',
+      password: adminPasswordHash,
+      role: 'ADMIN',
+    },
+    create: {
+      name: 'Admin',
+      email: adminEmail,
+      password: adminPasswordHash,
+      role: 'ADMIN',
+    },
+  })
+
+  console.log(`Admin user ready: ${adminEmail}`)
 
   const packages: SeedPackage[] = [
     {

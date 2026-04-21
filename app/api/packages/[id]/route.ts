@@ -1,5 +1,29 @@
 import { NextResponse } from 'next/server'
+import { getServerSession } from 'next-auth'
 import { prisma } from '@/lib/db'
+import { authOptions } from '@/lib/auth'
+import { Category, Prisma } from '@/generated/prisma/client'
+import { z } from 'zod'
+
+const itineraryDaySchema = z.object({
+  day: z.number().int().positive(),
+  title: z.string().trim().min(1).max(140),
+  description: z.string().trim().min(1).max(3000),
+})
+
+const updatePackagePayloadSchema = z.object({
+  title: z.string().trim().min(3).max(160),
+  destination: z.string().trim().min(2).max(180),
+  description: z.string().trim().min(20).max(10000),
+  price: z.coerce.number().positive().max(10000000),
+  duration: z.coerce.number().int().min(1).max(365),
+  category: z.nativeEnum(Category),
+  images: z.array(z.string().url()).max(20).optional().default([]),
+  itinerary: z.array(itineraryDaySchema).max(60).optional().default([]),
+  inclusions: z.array(z.string().trim().min(1).max(240)).max(100).optional().default([]),
+  exclusions: z.array(z.string().trim().min(1).max(240)).max(100).optional().default([]),
+  isActive: z.boolean().optional().default(true),
+})
 
 export async function GET(req: Request, { params }: { params: { id: string } | Promise<{ id: string }> }) {
   try {
@@ -14,11 +38,38 @@ export async function GET(req: Request, { params }: { params: { id: string } | P
 
 export async function PUT(req: Request, { params }: { params: { id: string } | Promise<{ id: string }> }) {
   try {
+    const session = await getServerSession(authOptions)
+
+    if (!session?.user || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+
     const { id } = await Promise.resolve(params)
     const body = await req.json()
+
+    const parsed = updatePackagePayloadSchema.safeParse(body)
+
+    if (!parsed.success) {
+      return NextResponse.json({ error: parsed.error.issues[0]?.message || 'Invalid package payload' }, { status: 400 })
+    }
+
+    const payload = parsed.data
+
     const pkg = await prisma.package.update({
       where: { id },
-      data: { ...body, price: parseFloat(body.price), duration: parseInt(body.duration) }
+      data: {
+        title: payload.title,
+        destination: payload.destination,
+        description: payload.description,
+        price: payload.price,
+        duration: payload.duration,
+        category: payload.category,
+        images: payload.images,
+        itinerary: payload.itinerary as Prisma.InputJsonValue,
+        inclusions: payload.inclusions,
+        exclusions: payload.exclusions,
+        isActive: payload.isActive,
+      }
     })
     return NextResponse.json(pkg)
   } catch {
@@ -28,6 +79,12 @@ export async function PUT(req: Request, { params }: { params: { id: string } | P
 
 export async function DELETE(req: Request, { params }: { params: { id: string } | Promise<{ id: string }> }) {
   try {
+    const session = await getServerSession(authOptions)
+
+    if (!session?.user || session.user.role !== 'ADMIN') {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
+    }
+
     const { id } = await Promise.resolve(params)
     await prisma.package.update({
       where: { id },

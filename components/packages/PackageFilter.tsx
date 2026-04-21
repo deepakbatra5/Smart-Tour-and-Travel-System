@@ -40,25 +40,26 @@ export default function PackageFilter() {
   }
 
   return (
-    <div className="bg-white rounded-2xl shadow-sm p-5 mb-8">
-
-      <div className="mb-4">
+    <div className="surface-card mb-8 rounded-3xl p-5 md:p-6">
+      <div className="mb-5">
+        <label className="mb-2 block text-xs font-bold uppercase tracking-[0.15em] text-slate-500">
+          Search Packages
+        </label>
         <input
           type="text"
-          placeholder="Search destination or package name..."
+          placeholder="Search by destination or package name..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           onKeyDown={(e) => e.key === 'Enter' && applyFilters()}
-          className="w-full border border-gray-200 rounded-full px-4 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-orange-400"
+          className="w-full rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700"
         />
       </div>
 
-      <div className="flex flex-wrap gap-3">
-
+      <div className="grid grid-cols-1 gap-3 md:grid-cols-3">
         <select
           value={category}
           onChange={(e) => setCategory(e.target.value)}
-          className="border border-gray-200 rounded-full px-4 py-2 text-sm focus:outline-none"
+          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700"
         >
           {categories.map((c) => (
             <option key={c} value={c}>{c === 'ALL' ? 'All Categories' : c}</option>
@@ -68,7 +69,7 @@ export default function PackageFilter() {
         <select
           value={duration}
           onChange={(e) => setDuration(e.target.value)}
-          className="border border-gray-200 rounded-full px-4 py-2 text-sm focus:outline-none"
+          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700"
         >
           {durations.map((d) => (
             <option key={d} value={d}>{d === 'ALL' ? 'All Durations' : `${d} Days`}</option>
@@ -78,23 +79,25 @@ export default function PackageFilter() {
         <select
           value={budget}
           onChange={(e) => setBudget(e.target.value)}
-          className="border border-gray-200 rounded-full px-4 py-2 text-sm focus:outline-none"
+          className="rounded-2xl border border-slate-200 bg-white px-4 py-3 text-sm text-slate-700"
         >
           {budgets.map((b) => (
             <option key={b.value} value={b.value}>{b.label}</option>
           ))}
         </select>
+      </div>
 
+      <div className="mt-4 flex flex-wrap gap-3">
         <button
           onClick={applyFilters}
-          className="bg-orange-500 text-white px-6 py-2 rounded-full text-sm font-medium hover:bg-orange-600 transition"
+          className="rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-2 text-sm font-semibold text-white hover:from-orange-600 hover:to-amber-600"
         >
           Apply Filters
         </button>
 
         <button
           onClick={clearFilters}
-          className="border border-gray-300 text-gray-500 px-4 py-2 rounded-full text-sm hover:bg-gray-50 transition"
+          className="rounded-full border border-slate-300 px-5 py-2 text-sm font-semibold text-slate-600 hover:bg-slate-100"
         >
           Clear
         </button>
