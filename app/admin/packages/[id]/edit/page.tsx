@@ -40,7 +40,7 @@ export default function EditPackagePage() {
   useEffect(() => {
     if (!id) return
 
-    fetch(`/api/packages/${id}`)
+    fetch(`/api/packages/${id}`, { cache: 'no-store' })
       .then((r) => r.json())
       .then((pkg) => {
         setForm({
@@ -108,8 +108,7 @@ export default function EditPackagePage() {
     setLoading(false)
     if (res.ok) {
       setToast({ type: 'success', text: 'Package updated successfully.' })
-      router.push('/admin/packages')
-      router.refresh()
+      router.replace('/admin/packages')
     } else {
       const data = await res.json().catch(() => null)
       setToast({ type: 'error', text: data?.error || 'Failed to update package.' })

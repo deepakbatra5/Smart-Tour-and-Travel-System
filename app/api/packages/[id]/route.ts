@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
+import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { authOptions } from '@/lib/auth'
 import { Category, Prisma } from '@/generated/prisma/client'
@@ -30,7 +31,11 @@ export async function GET(req: Request, { params }: { params: { id: string } | P
     const { id } = await Promise.resolve(params)
     const pkg = await prisma.package.findUnique({ where: { id } })
     if (!pkg) return NextResponse.json({ error: 'Not found' }, { status: 404 })
-    return NextResponse.json(pkg)
+    return NextResponse.json(pkg, {
+      headers: {
+        'Cache-Control': 'no-store',
+      },
+    })
   } catch {
     return NextResponse.json({ error: 'Failed to fetch package' }, { status: 500 })
   }
@@ -71,6 +76,14 @@ export async function PUT(req: Request, { params }: { params: { id: string } | P
         isActive: payload.isActive,
       }
     })
+
+    revalidatePath('/')
+    revalidatePath('/packages')
+    revalidatePath(`/packages/${pkg.slug}`)
+    revalidatePath('/admin')
+    revalidatePath('/admin/packages')
+    revalidatePath(`/admin/packages/${id}/edit`)
+
     return NextResponse.json(pkg)
   } catch {
     return NextResponse.json({ error: 'Failed to update package' }, { status: 500 })
@@ -90,6 +103,12 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       where: { id },
       data: { isActive: false }
     })
+
+    revalidatePath('/')
+    revalidatePath('/packages')
+    revalidatePath('/admin')
+    revalidatePath('/admin/packages')
+
     return NextResponse.json({ message: 'Package deleted' })
   } catch {
     return NextResponse.json({ error: 'Failed to delete package' }, { status: 500 })

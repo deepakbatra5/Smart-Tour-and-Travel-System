@@ -1,6 +1,9 @@
 import { prisma } from '@/lib/db'
 import UpdateBookingStatus from './UpdateBookingStatus'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 interface SearchParams {
   status?: string
 }

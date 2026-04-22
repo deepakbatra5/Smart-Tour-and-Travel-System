@@ -1,6 +1,9 @@
 import { prisma } from '@/lib/db'
 import Link from 'next/link'
 
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
 async function getStats() {
   const [totalBookings, totalUsers, totalPackages, revenueResult, recentBookings, pendingBookings] = await Promise.all([
     prisma.booking.count(),

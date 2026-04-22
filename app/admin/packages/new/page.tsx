@@ -92,8 +92,7 @@ export default function AddPackagePage() {
 
     if (res.ok) {
       setToast({ type: 'success', text: 'Package created successfully.' })
-      router.push('/admin/packages')
-      router.refresh()
+      router.replace('/admin/packages')
     } else {
       const data = await res.json().catch(() => null)
       setToast({ type: 'error', text: data?.error || 'Failed to create package. Please try again.' })

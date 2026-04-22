@@ -20,6 +20,7 @@ export default function DeletePackageButton({ id }: { id: string }) {
     }
 
     setToast({ type: 'success', text: 'Package deleted successfully.' })
+    router.replace('/admin/packages')
     router.refresh()
   }
 

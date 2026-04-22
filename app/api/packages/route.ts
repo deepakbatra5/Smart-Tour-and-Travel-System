@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
+import { revalidatePath } from 'next/cache'
 import { prisma } from '@/lib/db'
 import { Prisma, Category } from '@/generated/prisma/client'
 import { authOptions } from '@/lib/auth'
@@ -61,7 +62,11 @@ export async function GET(req: Request) {
       orderBy: { createdAt: 'desc' }
     })
 
-    return NextResponse.json(packages)
+    return NextResponse.json(packages, {
+      headers: {
+        'Cache-Control': 'no-store',
+      },
+    })
   } catch {
     return NextResponse.json({ error: 'Failed to fetch packages' }, { status: 500 })
   }
@@ -99,6 +104,11 @@ export async function POST(req: Request) {
         exclusions,
       }
     })
+
+    revalidatePath('/')
+    revalidatePath('/packages')
+    revalidatePath('/admin')
+    revalidatePath('/admin/packages')
 
     return NextResponse.json(pkg, { status: 201 })
   } catch {
