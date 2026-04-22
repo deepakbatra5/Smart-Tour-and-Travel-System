@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server'
 import { getServerSession } from 'next-auth'
+import { revalidatePath } from 'next/cache'
 import { authOptions } from '@/lib/auth'
 import { prisma } from '@/lib/db'
 import { BookingStatus } from '@/generated/prisma/client'
@@ -30,6 +31,26 @@ export async function PATCH(req: Request, { params }: { params: { id: string } |
       data: { status: parsed.data.status },
     })
 
+    if (parsed.data.status === 'COMPLETED') {
+      await prisma.bookingAgent.updateMany({
+        where: { bookingId: id },
+        data: { status: 'COMPLETED', completedAt: new Date() },
+      })
+    }
+
+    if (parsed.data.status === 'CANCELLED') {
+      await prisma.bookingAgent.updateMany({
+        where: { bookingId: id },
+        data: { status: 'CANCELLED' },
+      })
+    }
+
+    revalidatePath('/admin/bookings')
+    revalidatePath('/admin/agents')
+    revalidatePath('/agent')
+    revalidatePath('/agent/my-tours')
+    revalidatePath('/agent/earnings')
+
     return NextResponse.json(booking)
   } catch {
     return NextResponse.json({ error: 'Failed to update booking' }, { status: 500 })
@@ -48,7 +69,7 @@ export async function GET(req: Request, { params }: { params: { id: string } | P
 
     const booking = await prisma.booking.findUnique({
       where: { id },
-      include: { user: true, package: true, payment: true },
+      include: { user: true, package: true, payment: true, agentAssignment: true },
     })
 
     if (!booking) {

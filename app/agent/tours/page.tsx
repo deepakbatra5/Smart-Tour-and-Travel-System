@@ -1,0 +1,72 @@
+import { getServerSession } from 'next-auth'
+import { redirect } from 'next/navigation'
+import { authOptions } from '@/lib/auth'
+import { prisma } from '@/lib/db'
+import AgentTourSelector from './AgentTourSelector'
+
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
+
+export default async function AgentToursPage() {
+  const session = await getServerSession(authOptions)
+  if (!session?.user?.email) redirect('/login?callbackUrl=/agent/tours')
+
+  const user = await prisma.user.findUnique({
+    where: { email: session.user.email },
+    include: { agent: { include: { preferredTours: true } } },
+  })
+
+  if (!user?.agent) redirect('/agent-register')
+  if (user.agent.status === 'PENDING') redirect('/agent/pending')
+  if (user.agent.status === 'SUSPENDED') redirect('/')
+
+  const agent = user.agent
+
+  const packages = await prisma.package.findMany({
+    where: { isActive: true },
+    orderBy: { createdAt: 'desc' },
+  })
+  const selectedIds = new Set(agent.preferredTours.map((pref) => pref.packageId))
+
+  return (
+    <div className="space-y-6">
+      <div>
+        <h1 className="text-2xl font-bold text-slate-900">Available Tours</h1>
+        <p className="mt-1 text-sm text-slate-500">Select tours you are comfortable handling. Admins use this to assign better matches.</p>
+      </div>
+
+      <div className="grid grid-cols-1 gap-5 lg:grid-cols-2">
+        {packages.map((pkg) => {
+          const commission = pkg.price * 0.1
+          const selected = selectedIds.has(pkg.id)
+
+          return (
+            <div key={pkg.id} className="rounded-3xl bg-white p-5 shadow-sm">
+              <div className="flex items-start justify-between gap-4">
+                <div>
+                  <h2 className="font-bold text-slate-900">{pkg.title}</h2>
+                  <p className="mt-1 text-sm text-slate-500">{pkg.destination}</p>
+                </div>
+                <AgentTourSelector agentId={agent.id} packageId={pkg.id} selected={selected} />
+              </div>
+              <div className="mt-4 grid grid-cols-3 gap-3 text-sm">
+                <div className="rounded-2xl bg-slate-50 p-3">
+                  <p className="text-xs text-slate-400">Duration</p>
+                  <p className="font-bold text-slate-800">{pkg.duration} Days</p>
+                </div>
+                <div className="rounded-2xl bg-slate-50 p-3">
+                  <p className="text-xs text-slate-400">Price</p>
+                  <p className="font-bold text-slate-800">Rs {pkg.price.toLocaleString('en-IN')}</p>
+                </div>
+                <div className="rounded-2xl bg-emerald-50 p-3">
+                  <p className="text-xs text-emerald-600">Commission</p>
+                  <p className="font-bold text-emerald-700">Rs {commission.toLocaleString('en-IN')}</p>
+                </div>
+              </div>
+            </div>
+          )
+        })}
+      </div>
+    </div>
+  )
+}

@@ -20,6 +20,7 @@ model User {
   bookings  Booking[]
   reviews   Review[]
   enquiries Enquiry[]
+  agent     Agent?
 }
 
 enum Role {
@@ -47,6 +48,7 @@ model Package {
   bookings    Booking[]
   reviews     Review[]
   enquiries   Enquiry[]
+  agentPreferences AgentTourPreference[]
 }
 
 enum Category {
@@ -74,6 +76,7 @@ model Booking {
   package     Package       @relation(fields: [packageId], references: [id])
   payment     Payment?
   travellersInfo Json?      // traveller names, ages etc
+  agentAssignment BookingAgent?
 }
 
 enum BookingStatus {
@@ -126,4 +129,63 @@ model Review {
 
   user      User     @relation(fields: [userId], references: [id])
   package   Package  @relation(fields: [packageId], references: [id])
+}
+
+model Agent {
+  id         String      @id @default(cuid())
+  userId     String      @unique
+  phone      String
+  city       String
+  state      String
+  experience Int
+  languages  String[]
+  bio        String?
+  status     AgentStatus @default(PENDING)
+  rating     Float       @default(0)
+  totalTours Int         @default(0)
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  user             User                  @relation(fields: [userId], references: [id])
+  preferredTours   AgentTourPreference[]
+  assignedBookings BookingAgent[]
+}
+
+enum AgentStatus {
+  PENDING
+  APPROVED
+  SUSPENDED
+}
+
+model AgentTourPreference {
+  id        String @id @default(cuid())
+  agentId   String
+  packageId String
+
+  agent   Agent   @relation(fields: [agentId], references: [id])
+  package Package @relation(fields: [packageId], references: [id])
+
+  @@unique([agentId, packageId])
+}
+
+model BookingAgent {
+  id          String           @id @default(cuid())
+  bookingId   String           @unique
+  agentId     String
+  commission  Float
+  status      AssignmentStatus @default(ASSIGNED)
+  rating      Int?
+  feedback    String?
+  assignedAt  DateTime         @default(now())
+  completedAt DateTime?
+
+  booking Booking @relation(fields: [bookingId], references: [id])
+  agent   Agent   @relation(fields: [agentId], references: [id])
+}
+
+enum AssignmentStatus {
+  ASSIGNED
+  IN_PROGRESS
+  COMPLETED
+  CANCELLED
 }

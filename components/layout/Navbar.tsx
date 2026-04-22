@@ -13,6 +13,7 @@ const navLinks = [
   { label: 'Family', href: '/packages?category=FAMILY' },
   { label: 'Pilgrimage', href: '/packages?category=PILGRIMAGE' },
   { label: 'Group Tours', href: '/packages?category=GROUP' },
+  { label: 'Become an Agent', href: '/agent-register' },
 ]
 
 export default function Navbar() {
@@ -55,6 +56,9 @@ export default function Navbar() {
                   Admin Panel
                 </Link>
               )}
+              <Link href="/agent" className="whitespace-nowrap text-sm font-semibold text-cyan-700 hover:text-cyan-800">
+                Agent Portal
+              </Link>
               <Link href="/dashboard" className="whitespace-nowrap text-sm font-semibold text-slate-600 hover:text-slate-900">
                 Dashboard
               </Link>
@@ -116,6 +120,9 @@ export default function Navbar() {
                     Admin Panel
                   </Link>
                 )}
+                <Link href="/agent" onClick={() => setMenuOpen(false)} className="rounded-xl px-3 py-2 hover:bg-slate-100">
+                  Agent Portal
+                </Link>
                 <Link href="/dashboard" onClick={() => setMenuOpen(false)} className="rounded-xl px-3 py-2 hover:bg-slate-100">
                   Dashboard
                 </Link>

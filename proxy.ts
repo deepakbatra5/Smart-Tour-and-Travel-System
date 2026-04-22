@@ -22,9 +22,15 @@ export default async function proxy(req: NextRequest) {
     return NextResponse.redirect(loginUrl)
   }
 
+  if (path.startsWith('/agent') && path !== '/agent/pending' && !token) {
+    const loginUrl = new URL('/login', req.url)
+    loginUrl.searchParams.set('callbackUrl', `${req.nextUrl.pathname}${req.nextUrl.search}`)
+    return NextResponse.redirect(loginUrl)
+  }
+
   return NextResponse.next()
 }
 
 export const config = {
-  matcher: ['/admin/:path*'],
+  matcher: ['/admin/:path*', '/agent/:path*'],
 }

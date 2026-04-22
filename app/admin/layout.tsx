@@ -10,6 +10,7 @@ const navItems = [
   { href: '/admin/packages', label: 'Packages' },
   { href: '/admin/packages/new', label: 'Add Package' },
   { href: '/admin/bookings', label: 'Bookings' },
+  { href: '/admin/agents', label: 'Agents' },
   { href: '/admin/customers', label: 'Customers' },
 ]
 

@@ -1,5 +1,6 @@
 import { prisma } from '@/lib/db'
 import UpdateBookingStatus from './UpdateBookingStatus'
+import AssignAgentButton from './AssignAgentButton'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -18,8 +19,22 @@ export default async function AdminBookingsPage({ searchParams }: Props) {
 
   const bookings = await prisma.booking.findMany({
     where,
-    include: { user: true, package: true, payment: true },
+    include: {
+      user: true,
+      package: true,
+      payment: true,
+      agentAssignment: { include: { agent: { include: { user: { select: { name: true } } } } } },
+    },
     orderBy: { createdAt: 'desc' },
+  })
+
+  const agents = await prisma.agent.findMany({
+    where: { status: 'APPROVED' },
+    include: {
+      user: { select: { name: true } },
+      assignedBookings: { select: { status: true } },
+    },
+    orderBy: [{ rating: 'desc' }, { totalTours: 'desc' }],
   })
 
   const statusFilters = ['ALL', 'PENDING', 'CONFIRMED', 'CANCELLED', 'COMPLETED']
@@ -59,6 +74,7 @@ export default async function AdminBookingsPage({ searchParams }: Props) {
                 <th className="px-5 py-4 font-medium">Amount</th>
                 <th className="px-5 py-4 font-medium">Payment</th>
                 <th className="px-5 py-4 font-medium">Status</th>
+                <th className="px-5 py-4 font-medium">Agent</th>
                 <th className="px-5 py-4 font-medium">Update</th>
               </tr>
             </thead>
@@ -95,6 +111,22 @@ export default async function AdminBookingsPage({ searchParams }: Props) {
                     >
                       {booking.status}
                     </span>
+                  </td>
+                  <td className="px-5 py-4">
+                    <div className="space-y-1">
+                      {booking.agentAssignment ? (
+                        <p className="text-xs font-semibold text-emerald-600">{booking.agentAssignment.agent.user.name}</p>
+                      ) : (
+                        <p className="text-xs text-gray-400">Not assigned</p>
+                      )}
+                      {booking.status === 'CONFIRMED' && (
+                        <AssignAgentButton
+                          bookingId={booking.id}
+                          currentAgentId={booking.agentAssignment?.agentId}
+                          agents={agents}
+                        />
+                      )}
+                    </div>
                   </td>
                   <td className="px-5 py-4">
                     <UpdateBookingStatus bookingId={booking.id} currentStatus={booking.status} />
