@@ -1,10 +1,19 @@
 import { prisma } from '@/lib/db'
+import { authOptions } from '@/lib/auth'
+import { getServerSession } from 'next-auth'
 import AgentStatusUpdate from './AgentStatusUpdate'
+import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export default async function AdminAgentsPage() {
+  const session = await getServerSession(authOptions)
+
+  if (!session?.user || session.user.role !== 'ADMIN') {
+    redirect('/admin/login')
+  }
+
   const agents = await prisma.agent.findMany({
     include: {
       user: true,

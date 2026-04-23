@@ -6,11 +6,11 @@ import { CheckBadgeIcon } from '@heroicons/react/24/outline'
 export const dynamic = 'force-dynamic'
 
 interface Props {
-  params: { bookingId: string } | Promise<{ bookingId: string }>
+  params: Promise<{ bookingId: string }>
 }
 
 export default async function ConfirmationPage({ params }: Props) {
-  const { bookingId } = await Promise.resolve(params)
+  const { bookingId } = await params
 
   if (!bookingId) return notFound()
 

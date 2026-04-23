@@ -1,11 +1,20 @@
 import { prisma } from '@/lib/db'
+import { authOptions } from '@/lib/auth'
+import { getServerSession } from 'next-auth'
 import Link from 'next/link'
 import DeletePackageButton from './DeletePackageButton'
+import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
 
 export default async function AdminPackagesPage() {
+  const session = await getServerSession(authOptions)
+
+  if (!session?.user || session.user.role !== 'ADMIN') {
+    redirect('/admin/login')
+  }
+
   const packages = await prisma.package.findMany({
     orderBy: { createdAt: 'desc' },
     include: { _count: { select: { bookings: true } } },

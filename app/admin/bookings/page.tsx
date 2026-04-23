@@ -1,6 +1,9 @@
 import { prisma } from '@/lib/db'
+import { authOptions } from '@/lib/auth'
+import { getServerSession } from 'next-auth'
 import UpdateBookingStatus from './UpdateBookingStatus'
 import AssignAgentButton from './AssignAgentButton'
+import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -10,11 +13,17 @@ interface SearchParams {
 }
 
 interface Props {
-  searchParams: SearchParams | Promise<SearchParams>
+  searchParams?: Promise<SearchParams>
 }
 
 export default async function AdminBookingsPage({ searchParams }: Props) {
-  const resolved = await Promise.resolve(searchParams)
+  const session = await getServerSession(authOptions)
+
+  if (!session?.user || session.user.role !== 'ADMIN') {
+    redirect('/admin/login')
+  }
+
+  const resolved = (await searchParams) ?? {}
   const where = resolved.status && resolved.status !== 'ALL' ? { status: resolved.status as 'PENDING' | 'CONFIRMED' | 'CANCELLED' | 'COMPLETED' } : {}
 
   const bookings = await prisma.booking.findMany({

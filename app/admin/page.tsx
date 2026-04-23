@@ -1,5 +1,8 @@
 import { prisma } from '@/lib/db'
+import { authOptions } from '@/lib/auth'
+import { getServerSession } from 'next-auth'
 import Link from 'next/link'
+import { redirect } from 'next/navigation'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -40,6 +43,12 @@ function StatusBadge({ status }: { status: string }) {
 }
 
 export default async function AdminDashboardPage() {
+  const session = await getServerSession(authOptions)
+
+  if (!session?.user || session.user.role !== 'ADMIN') {
+    redirect('/admin/login')
+  }
+
   const stats = await getStats()
 
   const statCards = [

@@ -15,11 +15,11 @@ import {
 export const dynamic = 'force-dynamic'
 
 interface Props {
-  params: { slug: string } | Promise<{ slug: string }>
+  params: Promise<{ slug: string }>
 }
 
 export default async function PackageDetailPage({ params }: Props) {
-  const { slug } = await Promise.resolve(params)
+  const { slug } = await params
   const session = await getServerSession(authOptions)
 
   if (!slug) return notFound()

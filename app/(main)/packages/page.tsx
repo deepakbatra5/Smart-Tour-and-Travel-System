@@ -13,7 +13,7 @@ interface SearchParams {
 }
 
 interface Props {
-  searchParams: SearchParams | Promise<SearchParams>
+  searchParams?: Promise<SearchParams>
 }
 
 const quickCategories = [
@@ -59,7 +59,7 @@ async function getPackages(filters: SearchParams) {
 }
 
 export default async function PackagesPage({ searchParams }: Props) {
-  const filters = await Promise.resolve(searchParams)
+  const filters = (await searchParams) ?? {}
   const packages = await getPackages(filters)
   const selectedCategory = filters.category || 'ALL'
 

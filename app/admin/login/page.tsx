@@ -2,7 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
-import { getSession, signIn, signOut } from 'next-auth/react'
+import { signIn } from 'next-auth/react'
 
 function getSafeCallbackPath() {
   if (typeof window === 'undefined') return '/admin'
@@ -48,15 +48,6 @@ export default function AdminLoginPage() {
     if (result?.error || !result?.ok) {
       setLoading(false)
       setError('Invalid email or password. Please try again.')
-      return
-    }
-
-    const session = await getSession()
-
-    if (session?.user?.role !== 'ADMIN') {
-      await signOut({ redirect: false })
-      setLoading(false)
-      setError('This account is not an admin account.')
       return
     }
 

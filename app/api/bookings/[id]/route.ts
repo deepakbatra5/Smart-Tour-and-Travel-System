@@ -10,7 +10,7 @@ const bookingStatusSchema = z.object({
   status: z.nativeEnum(BookingStatus),
 })
 
-export async function PATCH(req: Request, { params }: { params: { id: string } | Promise<{ id: string }> }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -18,7 +18,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } |
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
-    const { id } = await Promise.resolve(params)
+    const { id } = await params
     const body = await req.json()
     const parsed = bookingStatusSchema.safeParse(body)
 
@@ -57,7 +57,7 @@ export async function PATCH(req: Request, { params }: { params: { id: string } |
   }
 }
 
-export async function GET(req: Request, { params }: { params: { id: string } | Promise<{ id: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -65,7 +65,7 @@ export async function GET(req: Request, { params }: { params: { id: string } | P
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
-    const { id } = await Promise.resolve(params)
+    const { id } = await params
 
     const booking = await prisma.booking.findUnique({
       where: { id },

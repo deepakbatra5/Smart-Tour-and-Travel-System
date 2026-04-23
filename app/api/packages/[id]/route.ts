@@ -26,9 +26,9 @@ const updatePackagePayloadSchema = z.object({
   isActive: z.boolean().optional().default(true),
 })
 
-export async function GET(req: Request, { params }: { params: { id: string } | Promise<{ id: string }> }) {
+export async function GET(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
-    const { id } = await Promise.resolve(params)
+    const { id } = await params
     const pkg = await prisma.package.findUnique({ where: { id } })
     if (!pkg) return NextResponse.json({ error: 'Not found' }, { status: 404 })
     return NextResponse.json(pkg, {
@@ -41,7 +41,7 @@ export async function GET(req: Request, { params }: { params: { id: string } | P
   }
 }
 
-export async function PUT(req: Request, { params }: { params: { id: string } | Promise<{ id: string }> }) {
+export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -49,7 +49,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } | P
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
-    const { id } = await Promise.resolve(params)
+    const { id } = await params
     const body = await req.json()
 
     const parsed = updatePackagePayloadSchema.safeParse(body)
@@ -90,7 +90,7 @@ export async function PUT(req: Request, { params }: { params: { id: string } | P
   }
 }
 
-export async function DELETE(req: Request, { params }: { params: { id: string } | Promise<{ id: string }> }) {
+export async function DELETE(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
 
@@ -98,7 +98,7 @@ export async function DELETE(req: Request, { params }: { params: { id: string } 
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
-    const { id } = await Promise.resolve(params)
+    const { id } = await params
     await prisma.package.update({
       where: { id },
       data: { isActive: false }

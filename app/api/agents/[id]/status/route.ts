@@ -5,14 +5,14 @@ import { prisma } from '@/lib/db'
 import { authOptions } from '@/lib/auth'
 import { AgentStatus } from '@/generated/prisma/client'
 
-export async function PATCH(req: Request, { params }: { params: { id: string } | Promise<{ id: string }> }) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   try {
     const session = await getServerSession(authOptions)
     if (session?.user?.role !== 'ADMIN') {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 403 })
     }
 
-    const { id } = await Promise.resolve(params)
+    const { id } = await params
     const { status } = await req.json()
 
     if (!(status in AgentStatus)) {
