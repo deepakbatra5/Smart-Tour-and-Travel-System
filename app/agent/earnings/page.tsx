@@ -9,11 +9,20 @@ export const revalidate = 0
 export default async function AgentEarningsPage() {
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) redirect('/login?callbackUrl=/agent/earnings')
+  const userEmail = session.user.email
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    include: { agent: true },
-  })
+  const user = await (async () => {
+    try {
+      return await prisma.user.findUnique({
+        where: { email: userEmail },
+        include: { agent: true },
+      })
+    } catch {
+      return null
+    }
+  })()
+
+  if (!user) redirect('/agent-register')
 
   if (!user?.agent) redirect('/agent-register')
   if (user.agent.status === 'PENDING') redirect('/agent/pending')
@@ -23,7 +32,7 @@ export default async function AgentEarningsPage() {
     where: { agentId: user.agent.id },
     include: { booking: { include: { package: true } } },
     orderBy: { assignedAt: 'desc' },
-  })
+  }).catch(() => [])
 
   const completed = assignments.filter((item) => item.status === 'COMPLETED')
   const total = completed.reduce((sum, item) => sum + item.commission, 0)

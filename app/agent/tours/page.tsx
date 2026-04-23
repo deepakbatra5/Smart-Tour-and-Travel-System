@@ -10,11 +10,20 @@ export const revalidate = 0
 export default async function AgentToursPage() {
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) redirect('/login?callbackUrl=/agent/tours')
+  const userEmail = session.user.email
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    include: { agent: { include: { preferredTours: true } } },
-  })
+  const user = await (async () => {
+    try {
+      return await prisma.user.findUnique({
+        where: { email: userEmail },
+        include: { agent: { include: { preferredTours: true } } },
+      })
+    } catch {
+      return null
+    }
+  })()
+
+  if (!user) redirect('/agent-register')
 
   if (!user?.agent) redirect('/agent-register')
   if (user.agent.status === 'PENDING') redirect('/agent/pending')
@@ -25,7 +34,7 @@ export default async function AgentToursPage() {
   const packages = await prisma.package.findMany({
     where: { isActive: true },
     orderBy: { createdAt: 'desc' },
-  })
+  }).catch(() => [])
   const selectedIds = new Set(agent.preferredTours.map((pref) => pref.packageId))
 
   return (

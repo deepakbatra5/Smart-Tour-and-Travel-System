@@ -10,11 +10,20 @@ export const revalidate = 0
 export default async function AgentDashboard() {
   const session = await getServerSession(authOptions)
   if (!session?.user?.email) redirect('/login?callbackUrl=/agent')
+  const userEmail = session.user.email
 
-  const user = await prisma.user.findUnique({
-    where: { email: session.user.email },
-    include: { agent: true },
-  })
+  const user = await (async () => {
+    try {
+      return await prisma.user.findUnique({
+        where: { email: userEmail },
+        include: { agent: true },
+      })
+    } catch {
+      return null
+    }
+  })()
+
+  if (!user) redirect('/agent-register')
 
   if (!user?.agent) redirect('/agent-register')
   if (user.agent.status === 'PENDING') redirect('/agent/pending')
@@ -24,12 +33,12 @@ export default async function AgentDashboard() {
     where: { agentId: user.agent.id },
     include: { booking: { include: { package: true, user: true } } },
     orderBy: { assignedAt: 'desc' },
-  })
+  }).catch(() => [])
 
   const totalEarnings = assignments.filter((item) => item.status === 'COMPLETED').reduce((sum, item) => sum + item.commission, 0)
   const completed = assignments.filter((item) => item.status === 'COMPLETED').length
   const active = assignments.filter((item) => item.status === 'ASSIGNED' || item.status === 'IN_PROGRESS').length
-  const preferredCount = await prisma.agentTourPreference.count({ where: { agentId: user.agent.id } })
+  const preferredCount = await prisma.agentTourPreference.count({ where: { agentId: user.agent.id } }).catch(() => 0)
 
   return (
     <div className="space-y-8">

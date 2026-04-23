@@ -56,7 +56,7 @@ This app should be deployed on Vercel, not GitHub Pages.
 This repo is already configured for that flow:
 
 - `vercel.json` tells Vercel to use `npm run vercel-build`
-- `npm run vercel-build` runs Prisma generate, `prisma migrate deploy`, `npm run seed`, and `next build`
+- `npm run vercel-build` runs Prisma generate, `prisma migrate deploy`, and `next build`
 - `prisma/migrations` now contains the initial migration Vercel can apply to a fresh PostgreSQL database
 
 If you are using Vercel Postgres or Prisma Postgres, set:
